@@ -27,12 +27,12 @@ import {
 	ResponsiveContainer,
 	Legend,
 } from 'recharts';
-import {
-	AlertDialog,
-	AlertDialogContent,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from './ui/alert-dialog';
+// import {
+// 	AlertDialog,
+// 	AlertDialogContent,
+// 	AlertDialogHeader,
+// 	AlertDialogTitle,
+// } from './ui/alert-dialog';
 
 // Mock data
 const performanceMetrics = [
