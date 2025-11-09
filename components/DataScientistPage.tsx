@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Alert } from './ui/alert';
+import { Progress } from './ui/progress';
 import { Label } from './ui/label';
 import { Slider } from './ui/slider';
 import {
@@ -75,11 +77,72 @@ const preprocessingSteps = [
 	{ step: 'Train-Test Split', status: 'completed', time: '0.8s' },
 ];
 
+import React, { useRef, useState } from 'react';
+
 export function DataScientistPage() {
+	// State cho upload
+	const [uploadError, setUploadError] = useState<string | null>(null);
+	const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+	const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	// State cho training progress
+	const [trainingStatus, setTrainingStatus] = useState<{
+		stage: string;
+		percent: number;
+	} | null>(null);
+	const [isTraining, setIsTraining] = useState(false);
+
+	// Hàm xử lý upload
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setUploadError(null);
+		setUploadSuccess(false);
+		const file = e.target.files?.[0];
+		if (!file) return;
+		if (!file.name.endsWith('.csv')) {
+			setUploadError('Chỉ chấp nhận file .csv');
+			return;
+		}
+		if (file.size > 20 * 1024 * 1024) {
+			setUploadError('Dung lượng file vượt quá 20MB');
+			return;
+		}
+		setUploadedFile(file);
+		setUploadSuccess(true);
+	};
+
+	// Hàm xử lý training
+	const handleStartTraining = async () => {
+		setIsTraining(true);
+		setTrainingStatus({ stage: 'Khởi tạo mô hình', percent: 0 });
+		await new Promise((res) => setTimeout(res, 1000));
+		setTrainingStatus({ stage: 'Tiền xử lý dữ liệu', percent: 20 });
+		await new Promise((res) => setTimeout(res, 1000));
+		setTrainingStatus({ stage: 'Training', percent: 50 });
+		// Tăng từ 50% đến 90% trong 5 giây
+		for (let p = 55; p <= 90; p += 7) {
+			await new Promise((res) => setTimeout(res, 1000));
+			setTrainingStatus({ stage: 'Training', percent: p });
+		}
+		setTrainingStatus({ stage: 'Hoàn thành', percent: 100 });
+		await new Promise((res) => setTimeout(res, 1000));
+		setIsTraining(false);
+	};
+
+	// Hàm reset
+	const handleReset = () => {
+		setTrainingStatus(null);
+		setIsTraining(false);
+		setUploadedFile(null);
+		setUploadError(null);
+		setUploadSuccess(false);
+		if (fileInputRef.current) fileInputRef.current.value = '';
+	};
+
 	return (
 		<div className="space-y-6">
 			{/* Model Status Banner */}
-			<Card className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border-purple-500/30">
+			<Card className="bg-linear-to-r from-purple-900/30 to-blue-900/30 border-purple-500/30">
 				<CardContent className="pt-6">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-4">
@@ -318,6 +381,20 @@ export function DataScientistPage() {
 					</p>
 				</CardHeader>
 				<CardContent>
+					{/* Thanh trạng thái training */}
+					{trainingStatus && (
+						<div className="mb-4 gap-1 bg-slate-800 p-4 rounded-lg">
+							<Alert className="mb-2 flex items-center justify-between">
+								<span className="font-semibold text-base text-blue-700">
+									{trainingStatus.stage}
+								</span>
+								<span className="font-semibold text-base text-green-400 text-right">
+									{trainingStatus.percent}%
+								</span>
+							</Alert>
+							<Progress value={trainingStatus.percent} max={100} />
+						</div>
+					)}
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 						{/* Upload Section */}
 						<div className="space-y-4">
@@ -325,17 +402,49 @@ export function DataScientistPage() {
 								<Label className="text-slate-300">Training Dataset</Label>
 								<div className="mt-2 border-2 border-dashed border-slate-700 rounded-lg p-8 text-center hover:border-purple-500 transition-colors cursor-pointer">
 									<Upload className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-									<p className="text-slate-400 text-sm">
-										Drop CSV file or click to upload
+									<input
+										ref={fileInputRef}
+										type="file"
+										accept=".csv"
+										style={{ display: 'none' }}
+										onChange={handleFileChange}
+									/>
+									<Button
+										variant="outline"
+										className="mt-2"
+										onClick={() => fileInputRef.current?.click()}
+									>
+										Chọn file CSV
+									</Button>
+									<p className="text-slate-400 text-sm mt-2">
+										Chỉ nhận file .csv, tối đa 20MB
 									</p>
-									<p className="text-slate-500 text-xs mt-1">Max size: 500MB</p>
+									{uploadedFile && (
+										<div className="text-green-400 text-xs mt-2">
+											Đã chọn: {uploadedFile.name}
+										</div>
+									)}
+									{uploadError && (
+										<div className="text-red-400 text-xs mt-2">
+											{uploadError}
+										</div>
+									)}
+									{uploadSuccess && (
+										<div className="text-green-400 text-xs mt-2">
+											Upload thành công!
+										</div>
+									)}
 								</div>
 							</div>
 							<div className="bg-slate-800 rounded-lg p-4">
 								<div className="text-slate-300 text-sm mb-2">
 									Current Dataset
 								</div>
-								<div className="text-white">ddos_training_data_v2.csv</div>
+								<div className="text-white">
+									{uploadedFile
+										? uploadedFile.name
+										: 'ddos_training_data_v2.csv'}
+								</div>
 								<div className="text-slate-400 text-xs mt-1">
 									1,245,890 samples • 23 features • Updated Oct 30
 								</div>
@@ -412,13 +521,18 @@ export function DataScientistPage() {
 					</div>
 
 					<div className="flex gap-3 mt-6">
-						<Button className="bg-purple-600 hover:bg-purple-700 text-white flex-1">
+						<Button
+							className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
+							disabled={isTraining}
+							onClick={handleStartTraining}
+						>
 							<Play className="w-4 h-4 mr-2" />
 							Start Training
 						</Button>
 						<Button
 							variant="outline"
 							className="border-slate-700 text-slate-300 hover:bg-slate-800"
+							onClick={handleReset}
 						>
 							<RotateCcw className="w-4 h-4 mr-2" />
 							Reset to Default
