@@ -17,7 +17,7 @@ export default function App() {
 				<div className="container mx-auto px-6 py-4">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-lg">
+							<div className="bg-linear-to-br from-cyan-500 to-blue-600 p-2 rounded-lg">
 								<Shield className="w-6 h-6 text-white" />
 							</div>
 							<div>
@@ -39,7 +39,7 @@ export default function App() {
 								}`}
 							>
 								<Shield className="w-4 h-4" />
-								Network Admin
+								Network Administrator
 							</button>
 							<button
 								onClick={() => setActiveStakeholder('data-scientist')}
