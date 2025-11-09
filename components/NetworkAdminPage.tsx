@@ -101,7 +101,7 @@ export function NetworkAdminPage() {
 		<div className="space-y-6">
 			{/* Critical Alerts Banner */}
 			<Alert className="border-red-500/50 bg-red-500/10">
-				<AlertTriangle className="h-5 w-5 text-red-400" />
+				<AlertTriangle color='red' width={5} height={5} />
 				<AlertDescription className="text-red-300">
 					<span>Active DDoS Attack Detected!</span> 4 critical incidents require
 					immediate attention.

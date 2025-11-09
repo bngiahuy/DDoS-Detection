@@ -243,7 +243,7 @@ export function DevOpsPage() {
 			{/* System Alerts */}
 			{alerts.filter((a) => a.severity === 'critical').length > 0 && (
 				<Alert className="border-red-500/50 bg-red-500/10">
-					<AlertCircle className="h-5 w-5 text-red-400" />
+					<AlertCircle color='red' width={5} height={5}/>
 					<AlertDescription className="text-red-300">
 						{alerts.filter((a) => a.severity === 'critical').length} critical
 						system issue(s) require immediate attention

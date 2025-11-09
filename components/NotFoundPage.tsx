@@ -5,7 +5,7 @@ import React from 'react';
 
 export function NotFoundPage({ goHome }: { goHome?: () => void }) {
 	return (
-		<div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-blue-900">
+		<div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-br from-slate-900 to-blue-900">
 			<Card className="w-full max-w-md bg-slate-900 border-slate-800 shadow-xl">
 				<CardHeader className="flex flex-col items-center">
 					<AlertTriangle className="w-12 h-12 text-orange-400 mb-2" />
