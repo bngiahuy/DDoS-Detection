@@ -37,7 +37,7 @@ export default function App() {
 			<button
 				onClick={() => navigate(to)}
 				className={`flex items-center gap-3 px-${
-					indent ? '8' : '4'
+					indent ? '6' : '3'
 				} py-2 rounded-lg transition-all text-left w-full mt-1 text-sm ${
 					isActive
 						? indent
@@ -87,7 +87,6 @@ export default function App() {
 								label="Data Scientist"
 							/>
 							{/* Child navigation for Data Scientist */}
-
 							<SidebarButton
 								to="/dataset"
 								icon={<FileSpreadsheet className="w-4 h-4" />}

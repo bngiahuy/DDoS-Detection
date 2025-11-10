@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardHeader, CardDescription, CardAction } from './ui/card';
 import { Button } from './ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableCell } from './ui/table';

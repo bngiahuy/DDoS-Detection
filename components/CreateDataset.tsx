@@ -41,6 +41,7 @@ export default function CreateDataset() {
 			return;
 		}
 		setFile(f);
+		console.log('Selected file:', file?.name);
 		// Read and preview first 10 rows
 		const reader = new FileReader();
 		reader.onload = (ev) => {
