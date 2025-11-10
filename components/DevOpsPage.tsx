@@ -1,4 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { useContext } from 'react';
+import { AttackContext } from '../src/App';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
@@ -191,6 +193,7 @@ const alerts = [
 ];
 
 export default function DevOpsPage() {
+	const { attackActive } = useContext(AttackContext);
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case 'running':
@@ -240,13 +243,19 @@ export default function DevOpsPage() {
 
 	return (
 		<div className="space-y-6">
-			{/* System Alerts */}
-			{alerts.filter((a) => a.severity === 'critical').length > 0 && (
+			{/* System Alerts (only show if attackActive) */}
+			{attackActive ? (
 				<Alert className="border-red-500/50 bg-red-500/10">
-					<AlertCircle color='red' width={5} height={5}/>
+					<AlertCircle color="red" width={5} height={5} />
 					<AlertDescription className="text-red-300">
-						{alerts.filter((a) => a.severity === 'critical').length} critical
-						system issue(s) require immediate attention
+						1 critical system issue requires immediate attention
+					</AlertDescription>
+				</Alert>
+			) : (
+				<Alert className="border-green-500/50 bg-green-500/10">
+					<CheckCircle2 color="green" width={5} height={5} />
+					<AlertDescription className="text-green-300">
+						All systems operational. No active incidents.
 					</AlertDescription>
 				</Alert>
 			)}
@@ -261,11 +270,15 @@ export default function DevOpsPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl text-white">76%</div>
+						<div className="text-3xl text-white">
+							{attackActive ? '95%' : '32%'}
+						</div>
 						<div className="mt-3 bg-slate-800 rounded-full h-2 overflow-hidden">
 							<div
-								className="h-full bg-orange-500 rounded-full"
-								style={{ width: '76%' }}
+								className={`h-full ${
+									attackActive ? 'bg-orange-500' : 'bg-green-500'
+								} rounded-full`}
+								style={{ width: attackActive ? '95%' : '32%' }}
 							/>
 						</div>
 						<p className="text-slate-400 text-xs mt-2">8 cores @ 3.2 GHz</p>
@@ -280,14 +293,18 @@ export default function DevOpsPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl text-white">79%</div>
+						<div className="text-3xl text-white">
+							{attackActive ? '99%' : '41%'}
+						</div>
 						<div className="mt-3 bg-slate-800 rounded-full h-2 overflow-hidden">
 							<div
-								className="h-full bg-orange-500 rounded-full"
-								style={{ width: '79%' }}
+								className={`h-full ${
+									attackActive ? 'bg-orange-500' : 'bg-green-500'
+								} rounded-full`}
+								style={{ width: attackActive ? '99%' : '41%' }}
 							/>
 						</div>
-						<p className="text-slate-400 text-xs mt-2">12.6 GB / 16 GB</p>
+						<p className="text-slate-400 text-xs mt-2">16 GB</p>
 					</CardContent>
 				</Card>
 
@@ -299,15 +316,20 @@ export default function DevOpsPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl text-white">850 Mbps</div>
+						<div className="text-3xl text-white">
+							{attackActive ? '1000 Mbps' : '210 Mbps'}
+						</div>
 						<div className="mt-3 bg-slate-800 rounded-full h-2 overflow-hidden">
 							<div
-								className="h-full bg-cyan-500 rounded-full"
-								style={{ width: '85%' }}
+								className={`h-full ${
+									attackActive ? 'bg-cyan-500' : 'bg-green-500'
+								} rounded-full`}
+								style={{ width: attackActive ? '100%' : '21%' }}
 							/>
 						</div>
 						<p className="text-slate-400 text-xs mt-2">
-							↓ 620 Mbps / ↑ 230 Mbps
+							↓ {attackActive ? '820 Mbps' : '120 Mbps'} / ↑{' '}
+							{attackActive ? '180 Mbps' : '90 Mbps'}
 						</p>
 					</CardContent>
 				</Card>

@@ -1,4 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { useContext } from 'react';
+import { AttackContext } from '../src/App';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
@@ -86,6 +88,7 @@ const topAttackers = [
 ];
 
 export default function NetworkAdminPage() {
+	const { attackActive } = useContext(AttackContext);
 	const getSeverityColor = (severity: string) => {
 		switch (severity) {
 			case 'critical':
@@ -99,14 +102,23 @@ export default function NetworkAdminPage() {
 
 	return (
 		<div className="space-y-6">
-			{/* Critical Alerts Banner */}
-			<Alert className="border-red-500/50 bg-red-500/10">
-				<AlertTriangle color='red' width={5} height={5} />
-				<AlertDescription className="text-red-300">
-					<span>Active DDoS Attack Detected!</span> 4 critical incidents require
-					immediate attention.
-				</AlertDescription>
-			</Alert>
+			{/* Critical Alerts Banner (only show if attackActive) */}
+			{attackActive ? (
+				<Alert className="border-red-500/50 bg-red-500/10">
+					<AlertTriangle color="red" width={5} height={5} />
+					<AlertDescription className="text-red-300">
+						<span>Active DDoS Attack Detected!</span> 4 critical incidents
+						require immediate attention.
+					</AlertDescription>
+				</Alert>
+			) : (
+				<Alert className="border-green-500/50 bg-green-500/10">
+					<Shield color="green" width={5} height={5} />
+					<AlertDescription className="text-green-300">
+						<span>System Stable.</span> No active threats detected.
+					</AlertDescription>
+				</Alert>
+			)}
 
 			{/* Key Metrics */}
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -119,10 +131,17 @@ export default function NetworkAdminPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl text-white">
-							8.4K <span className="text-sm text-slate-400">req/s</span>
+							{attackActive ? '8.4K' : '2.1K'}{' '}
+							<span className="text-sm text-slate-400">req/s</span>
 						</div>
-						<Badge className="mt-2 bg-red-500/10 text-red-400 border-red-500/20">
-							+340% anomaly
+						<Badge
+							className={`mt-2 ${
+								attackActive
+									? 'bg-red-500/10 text-red-400 border-red-500/20'
+									: 'bg-green-500/10 text-green-400 border-green-500/20'
+							}`}
+						>
+							{attackActive ? '+340% anomaly' : 'Normal'}
 						</Badge>
 					</CardContent>
 				</Card>
@@ -135,8 +154,16 @@ export default function NetworkAdminPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl text-white">1,247</div>
-						<Badge className="mt-2 bg-green-500/10 text-green-400 border-green-500/20">
+						<div className="text-2xl text-white">
+							{attackActive ? '1,247' : '0'}
+						</div>
+						<Badge
+							className={`mt-2 ${
+								attackActive
+									? 'bg-green-500/10 text-green-400 border-green-500/20'
+									: 'bg-slate-700 text-slate-300 border-slate-600'
+							}`}
+						>
 							Last hour
 						</Badge>
 					</CardContent>
@@ -150,9 +177,17 @@ export default function NetworkAdminPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl text-white">4</div>
-						<Badge className="mt-2 bg-red-500/10 text-red-400 border-red-500/20">
-							Critical
+						<div className="text-2xl text-white">
+							{attackActive ? '4' : '0'}
+						</div>
+						<Badge
+							className={`mt-2 ${
+								attackActive
+									? 'bg-red-500/10 text-red-400 border-red-500/20'
+									: 'bg-green-500/10 text-green-400 border-green-500/20'
+							}`}
+						>
+							{attackActive ? 'Critical' : 'None'}
 						</Badge>
 					</CardContent>
 				</Card>
@@ -165,9 +200,17 @@ export default function NetworkAdminPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl text-white">76%</div>
-						<Badge className="mt-2 bg-orange-500/10 text-orange-400 border-orange-500/20">
-							Degraded
+						<div className="text-2xl text-white">
+							{attackActive ? '76%' : '99%'}
+						</div>
+						<Badge
+							className={`mt-2 ${
+								attackActive
+									? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+									: 'bg-green-500/10 text-green-400 border-green-500/20'
+							}`}
+						>
+							{attackActive ? 'Degraded' : 'Optimal'}
 						</Badge>
 					</CardContent>
 				</Card>

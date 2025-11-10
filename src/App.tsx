@@ -1,4 +1,10 @@
-import { useState } from 'react';
+import { useState, createContext, useContext } from 'react';
+
+// Context for attack status
+export const AttackContext = createContext({
+	attackActive: false,
+	setAttackActive: (_: boolean) => {},
+});
 import { useNavigate, BrowserRouter, Routes, Route } from 'react-router-dom';
 import NetworkAdminPage from '../components/NetworkAdminPage';
 import DataScientistPage from '../components/DataScientistPage';
@@ -15,9 +21,15 @@ import {
 	Brain,
 	FileSpreadsheet,
 	Server,
+	Power,
+	Pause
 } from 'lucide-react';
+
 export default function App() {
 	const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+	// DDoS Attack Simulation State
+	const [attackActive, setAttackActive] = useState(false);
+
 	type SidebarButtonProps = {
 		to: string;
 		icon: React.ReactNode;
@@ -52,96 +64,124 @@ export default function App() {
 		);
 	}
 
-	return (
-		<BrowserRouter>
-			<div className="min-h-screen bg-slate-950 flex">
-				{/* Sidebar Dashboard */}
-				<div
-					className={`fixed top-0 left-0 h-full z-40 transition-transform duration-300 ${
-						sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-					} bg-slate-900 border-r border-slate-800 w-64 flex flex-col shadow-lg`}
-				>
-					<div className="flex items-center gap-3 px-6 py-4 border-b border-slate-800">
-						<div className="bg-linear-to-br from-cyan-500 to-blue-600 p-2 rounded-lg">
-							<Shield className="w-6 h-6 text-white" />
-						</div>
-						<div>
-							<h1 className="text-white text-lg font-semibold">
-								DDoS Defense System
-							</h1>
-							<p className="text-slate-400 text-xs">
-								Random Forest Detection Engine
-							</p>
-						</div>
-					</div>
-					<nav className="flex flex-col gap-2 px-4 py-6">
-						<SidebarButton
-							to="/"
-							icon={<Shield className="w-5 h-5" />}
-							label="Network Administrator"
-						/>
-						<div>
-							<SidebarButton
-								to="/data-scientist"
-								icon={<Brain className="w-5 h-5" />}
-								label="Data Scientist"
-							/>
-							{/* Child navigation for Data Scientist */}
-							<SidebarButton
-								to="/dataset"
-								icon={<FileSpreadsheet className="w-4 h-4" />}
-								label="Dataset"
-								indent
-							/>
-							<SidebarButton
-								to="/data-preprocessing"
-								icon={<FolderCog className="w-4 h-4" />}
-								label="Data Preprocessing"
-								indent
-							/>
-						</div>
-						<SidebarButton
-							to="/devops"
-							icon={<Server className="w-5 h-5" />}
-							label="DevOps"
-						/>
-					</nav>
-				</div>
-				{/* Sidebar Toggle Button */}
-				<button
-					className="fixed left-4 bottom-4 z-50 bg-slate-800 text-slate-200 rounded-full p-2 shadow-lg hover:bg-slate-700 transition-all"
-					onClick={() => setSidebarOpen((open) => !open)}
-					aria-label="Toggle sidebar"
-				>
-					{sidebarOpen ? <ArrowRightFromLine /> : <ArrowLeftFromLine />}
-				</button>
+	// Button for simulating DDoS attack
+	function DDoSAttackButton() {
+		const { attackActive, setAttackActive } = useContext(AttackContext);
+		return (
+			<button
+				onClick={() => setAttackActive(!attackActive)}
+				className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left w-full mt-1 text-sm font-semibold ${
+					attackActive
+						? 'bg-red-700 text-white shadow-lg shadow-red-500/20'
+						: 'bg-green-600 text-white hover:bg-green-700'
+				}`}
+			>
+				{attackActive ? <Pause className="w-5 h-5" /> : <Power className="w-5 h-5" />}
+				<span>{attackActive ? 'DDoS Attack End' : 'DDoS Attack Begin'}</span>
+			</button>
+		);
+	}
 
-				{/* Main Content */}
-				<div
-					className={`flex-1 transition-all duration-300 ${
-						sidebarOpen ? 'ml-64' : 'ml-0'
-					}`}
-				>
-					<header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-30">
-						<div className="container mx-auto px-6 py-4 flex items-center justify-between">
-							<div className="flex items-center gap-3">
-								{/* Logo and Title moved to sidebar */}
+	return (
+		<AttackContext.Provider value={{ attackActive, setAttackActive }}>
+			<BrowserRouter>
+				<div className="min-h-screen bg-slate-950 flex">
+					{/* Sidebar Dashboard */}
+					<div
+						className={`fixed top-0 left-0 h-full z-40 transition-transform duration-300 ${
+							sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+						} bg-slate-900 border-r border-slate-800 w-64 flex flex-col shadow-lg`}
+					>
+						<div className="flex items-center gap-3 px-6 py-4 border-b border-slate-800">
+							<div className="bg-linear-to-br from-cyan-500 to-blue-600 p-2 rounded-lg">
+								<Shield className="w-6 h-6 text-white" />
+							</div>
+							<div>
+								<h1 className="text-white text-lg font-semibold">
+									DDoS Defense System
+								</h1>
+								<p className="text-slate-400 text-xs">
+									Random Forest Detection Engine
+								</p>
 							</div>
 						</div>
-					</header>
-					<main className="container mx-auto px-6 py-6">
-						<Routes>
-							<Route path="/" element={<NetworkAdminPage />} />
-							<Route path="/data-scientist" element={<DataScientistPage />} />
-							<Route path="/data-preprocessing" element={<DataPreprocessingPage />} />
-							<Route path="/dataset" element={<DatasetPage />} />
-							<Route path="/devops" element={<DevOpsPage />} />
-							<Route path="/create-dataset" element={<CreateDataset />} />
-							<Route path="/create-preprocessing" element={<CreatePreprocessing />} />
-						</Routes>
-					</main>
+						<nav className="flex flex-col gap-2 px-4 py-6">
+							<SidebarButton
+								to="/"
+								icon={<Shield className="w-5 h-5" />}
+								label="Network Administrator"
+							/>
+							<div>
+								<SidebarButton
+									to="/data-scientist"
+									icon={<Brain className="w-5 h-5" />}
+									label="Data Scientist"
+								/>
+								{/* Child navigation for Data Scientist */}
+								<SidebarButton
+									to="/dataset"
+									icon={<FileSpreadsheet className="w-4 h-4" />}
+									label="Dataset"
+									indent
+								/>
+								<SidebarButton
+									to="/data-preprocessing"
+									icon={<FolderCog className="w-4 h-4" />}
+									label="Data Preprocessing"
+									indent
+								/>
+							</div>
+							<SidebarButton
+								to="/devops"
+								icon={<Server className="w-5 h-5" />}
+								label="DevOps"
+							/>
+							{/* DDoS Attack Simulation Button */}
+							<DDoSAttackButton />
+						</nav>
+					</div>
+					{/* Sidebar Toggle Button */}
+					<button
+						className="fixed left-4 bottom-4 z-50 bg-slate-800 text-slate-200 rounded-full p-2 shadow-lg hover:bg-slate-700 transition-all"
+						onClick={() => setSidebarOpen((open) => !open)}
+						aria-label="Toggle sidebar"
+					>
+						{sidebarOpen ? <ArrowRightFromLine /> : <ArrowLeftFromLine />}
+					</button>
+
+					{/* Main Content */}
+					<div
+						className={`flex-1 transition-all duration-300 ${
+							sidebarOpen ? 'ml-64' : 'ml-0'
+						}`}
+					>
+						<header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-30">
+							<div className="container mx-auto px-6 py-4 flex items-center justify-between">
+								<div className="flex items-center gap-3">
+									{/* Logo and Title moved to sidebar */}
+								</div>
+							</div>
+						</header>
+						<main className="container mx-auto px-6 py-6">
+							<Routes>
+								<Route path="/" element={<NetworkAdminPage />} />
+								<Route path="/data-scientist" element={<DataScientistPage />} />
+								<Route
+									path="/data-preprocessing"
+									element={<DataPreprocessingPage />}
+								/>
+								<Route path="/dataset" element={<DatasetPage />} />
+								<Route path="/devops" element={<DevOpsPage />} />
+								<Route path="/create-dataset" element={<CreateDataset />} />
+								<Route
+									path="/create-preprocessing"
+									element={<CreatePreprocessing />}
+								/>
+							</Routes>
+						</main>
+					</div>
 				</div>
-			</div>
-		</BrowserRouter>
+			</BrowserRouter>
+		</AttackContext.Provider>
 	);
 }
