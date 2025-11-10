@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTrigger, DialogContent, DialogClose } from './ui/dialog';
+import { useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
 import { Input } from './ui/input';
 import {
 	Select,
@@ -8,13 +9,11 @@ import {
 	SelectContent,
 	SelectItem,
 } from './ui/select';
-import { Button } from './ui/button';
-import { Card, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Card, CardHeader, CardDescription } from './ui/card';
 import { Alert, AlertTitle, AlertDescription } from './ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableCell } from './ui/table';
 
-export default function Dataset() {
-	const [open, setOpen] = useState(false);
+export default function CreateDataset() {
 	const [name, setName] = useState('');
 	const [subset, setSubset] = useState('Train set');
 	// 'file' will be used for upload logic and backend integration
@@ -26,6 +25,7 @@ export default function Dataset() {
 	// All columns selected by default
 	const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
 	const [sortBy, setSortBy] = useState('');
+	const navigate = useNavigate();
 
 	// File upload handler
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,11 +82,20 @@ export default function Dataset() {
 
 	return (
 		<Card className="bg-slate-950 min-h-[60vh] border-purple-800 p-0">
-			<CardHeader className="border-b pb-4">
-				<h1 className="text-3xl font-bold text-purple-400">Create Dataset</h1>
-				<CardDescription className="text-slate-300 mt-2">
-					Fill in the details below to create a new dataset.
-				</CardDescription>
+			<CardHeader className="border-b pb-4 flex flex-row items-center justify-between">
+				<div>
+					<h1 className="text-3xl font-bold text-purple-400">Create Dataset</h1>
+					<CardDescription className="text-slate-300 mt-2">
+						Fill in the details below to create a new dataset.
+					</CardDescription>
+				</div>
+				<Button
+					variant="outline"
+					className="text-purple-600 border-purple-600 hover:bg-purple-50 hover:text-purple-900"
+					onClick={() => navigate('/dataset')}
+				>
+					Back
+				</Button>
 			</CardHeader>
 			<form className="space-y-4 p-8">
 				<div>
@@ -117,7 +126,12 @@ export default function Dataset() {
 					<label className="block text-sm font-medium text-slate-300 mb-1">
 						Choose file to upload
 					</label>
-					<Input type="file" accept=".csv" onChange={handleFileChange} />
+					<Input
+						type="file"
+						accept=".csv"
+						onChange={handleFileChange}
+						className=" border border-purple-700 bg-violet-200 rounded-md shadow-sm transition-colors cursor-pointer"
+					/>
 					{error && (
 						<Alert variant="destructive" className="mt-2">
 							<AlertTitle>Error</AlertTitle>
@@ -227,20 +241,8 @@ export default function Dataset() {
 						type="button"
 						className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition-all"
 						onClick={async () => {
-							if (!file) {
-								setError('Please upload a CSV file.');
-								return;
-							}
-							if (selectedColumns.length === 0) {
-								setError('Please select at least one column.');
-								return;
-							}
-							setError('');
-							// Placeholder: Implement backend API to save file to /upload/
-							// Example: Use fetch('/api/upload', { method: 'POST', body: FormData })
-							alert(
-								'Dataset creation logic goes here. File will be saved to /upload/.'
-							);
+							alert('Dataset created successfully! (Demo only)');
+							navigate('/dataset');
 						}}
 					>
 						Create

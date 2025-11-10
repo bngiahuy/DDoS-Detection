@@ -85,7 +85,7 @@ const topAttackers = [
 	{ ip: '172.16.254.1', requests: 18920, country: 'Unknown', blocked: true },
 ];
 
-export function NetworkAdminPage() {
+export default function NetworkAdminPage() {
 	const getSeverityColor = (severity: string) => {
 		switch (severity) {
 			case 'critical':

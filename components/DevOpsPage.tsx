@@ -190,7 +190,7 @@ const alerts = [
 	},
 ];
 
-export function DevOpsPage() {
+export default function DevOpsPage() {
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case 'running':

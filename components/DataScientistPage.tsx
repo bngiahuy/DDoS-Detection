@@ -129,7 +129,7 @@ const validationAlarms = [
 	},
 ];
 
-export function DataScientistPage() {
+export default function DataScientistPage() {
 	// State cho upload
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [uploadedFile, setUploadedFile] = useState<File | null>(null);
