@@ -9,17 +9,17 @@ import { useNavigate, BrowserRouter, Routes, Route } from 'react-router-dom';
 import NetworkAdminPage from '../components/NetworkAdminPage';
 import DataScientistPage from '../components/DataScientistPage';
 import DevOpsPage from '../components/DevOpsPage';
-import DatasetPage from '../components/DatasetPage';
-import CreateDataset from '../components/CreateDataset';
-import CreatePreprocessing from '../components/CreatePreprocessing';
-import DataPreprocessingPage from '../components/DataPreprocessingPage';
+// import DatasetPage from '../components/DatasetPage';
+// import CreateDataset from '../components/CreateDataset';
+// import CreatePreprocessing from '../components/CreatePreprocessing';
+// import DataPreprocessingPage from '../components/DataPreprocessingPage';
 import {
 	ArrowRightFromLine,
 	ArrowLeftFromLine,
-	FolderCog,
+	// FolderCog,
 	Shield,
 	Brain,
-	FileSpreadsheet,
+	// FileSpreadsheet,
 	Server,
 	Power,
 	Pause
@@ -118,7 +118,7 @@ export default function App() {
 									label="Data Scientist"
 								/>
 								{/* Child navigation for Data Scientist */}
-								<SidebarButton
+								{/* <SidebarButton
 									to="/dataset"
 									icon={<FileSpreadsheet className="w-4 h-4" />}
 									label="Dataset"
@@ -129,7 +129,7 @@ export default function App() {
 									icon={<FolderCog className="w-4 h-4" />}
 									label="Data Preprocessing"
 									indent
-								/>
+								/> */}
 							</div>
 							<SidebarButton
 								to="/devops"
@@ -166,17 +166,17 @@ export default function App() {
 							<Routes>
 								<Route path="/" element={<NetworkAdminPage />} />
 								<Route path="/data-scientist" element={<DataScientistPage />} />
-								<Route
+								{/* <Route
 									path="/data-preprocessing"
 									element={<DataPreprocessingPage />}
 								/>
-								<Route path="/dataset" element={<DatasetPage />} />
+								<Route path="/dataset" element={<DatasetPage />} /> */}
 								<Route path="/devops" element={<DevOpsPage />} />
-								<Route path="/create-dataset" element={<CreateDataset />} />
+								{/* <Route path="/create-dataset" element={<CreateDataset />} />
 								<Route
 									path="/create-preprocessing"
 									element={<CreatePreprocessing />}
-								/>
+								/> */}
 							</Routes>
 						</main>
 					</div>
