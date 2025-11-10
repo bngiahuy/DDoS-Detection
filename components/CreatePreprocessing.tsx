@@ -161,7 +161,7 @@ export default function CreatePreprocessing() {
 
 			{!selectedDataset ? (
 				<p className="text-slate-500 italic p-4 text-center">
-					Vui lòng chọn Dataset Version để xem trước dữ liệu.
+					Please select a dataset to preview its content.
 				</p>
 			) : (
 				<>
