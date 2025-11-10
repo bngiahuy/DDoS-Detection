@@ -57,28 +57,6 @@ export default function CreateDataset() {
 		reader.readAsText(f);
 	};
 
-	// Move columns between lists
-	// moveColumns/removeColumns will be used for column selection logic
-	const moveColumns = (
-		from: string[],
-		to: string[],
-		setFrom: any,
-		setTo: any,
-		cols: string[]
-	) => {
-		setFrom(from.filter((col) => !cols.includes(col)));
-		setTo([...to, ...cols.filter((col) => !to.includes(col))]);
-	};
-	const removeColumns = (
-		from: string[],
-		to: string[],
-		setFrom: any,
-		setTo: any,
-		cols: string[]
-	) => {
-		setTo(to.filter((col) => !cols.includes(col)));
-		setFrom([...from, ...cols.filter((col) => !from.includes(col))]);
-	};
 
 	return (
 		<Card className="bg-slate-950 min-h-[60vh] border-purple-800 p-0">

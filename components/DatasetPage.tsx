@@ -122,7 +122,7 @@ export default function DatasetPage() {
                             Datasets 🚀
                         </h1>
                         <CardDescription className="mt-2 text-slate-400 text-lg">
-                            Quản lý các tập dữ liệu và phiên bản.
+                            Manage and create datasets for your DDoS detection models.
                         </CardDescription>
                     </div>
                     <CardAction>
@@ -132,7 +132,7 @@ export default function DatasetPage() {
                             size="lg"
                             className="bg-amber-400 text-slate-950 font-semibold hover:bg-amber-300 transition duration-200 shadow-lg hover:shadow-amber-500/50"
                         >
-                            ➕ Tạo Dataset Mới
+                            ➕ Create New Dataset
                         </Button>
                     </CardAction>
                 </CardHeader>

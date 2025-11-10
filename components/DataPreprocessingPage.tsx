@@ -47,6 +47,10 @@ const pipelines = [
 export default function DataPreprocessingPage() {
     const navigate = useNavigate();
 
+    const redirectToCreatePreprocessing = () => {
+        navigate('/create-preprocessing');
+    };
+
     return (
         <div className="bg-slate-950 min-h-screen p-8">
             <Card className="w-full max-w-6xl mx-auto bg-slate-900 border-t-4 border-purple-500 rounded-xl shadow-2xl text-slate-100 overflow-hidden">
@@ -57,17 +61,17 @@ export default function DataPreprocessingPage() {
                             <span>Preprocess Pipelines</span>
                         </h1>
                         <CardDescription className="mt-2 text-slate-400 text-lg">
-                            Quản lý các quy trình xử lý dữ liệu (Preprocessing Pipelines).
+                            Manage and create data preprocessing pipelines for your datasets.
                         </CardDescription>
                     </div>
                     <CardAction>
                         <Button
-                            onClick={() => navigate('/create-preprocess')}
+                            onClick={redirectToCreatePreprocessing}
                             variant="default"
                             size="lg"
                             className="bg-amber-400 text-slate-950 font-semibold hover:bg-amber-300 transition duration-200 shadow-lg hover:shadow-amber-500/50"
                         >
-                            ➕ Tạo Pipeline Mới
+                            ➕ Create New Pipeline
                         </Button>
                     </CardAction>
                 </CardHeader>

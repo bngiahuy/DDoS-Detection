@@ -5,6 +5,7 @@ import DataScientistPage from '../components/DataScientistPage';
 import DevOpsPage from '../components/DevOpsPage';
 import DatasetPage from '../components/DatasetPage';
 import CreateDataset from '../components/CreateDataset';
+import CreatePreprocessing from '../components/CreatePreprocessing';
 import DataPreprocessingPage from '../components/DataPreprocessingPage';
 import {
 	ArrowRightFromLine,
@@ -137,6 +138,7 @@ export default function App() {
 							<Route path="/dataset" element={<DatasetPage />} />
 							<Route path="/devops" element={<DevOpsPage />} />
 							<Route path="/create-dataset" element={<CreateDataset />} />
+							<Route path="/create-preprocessing" element={<CreatePreprocessing />} />
 						</Routes>
 					</main>
 				</div>
