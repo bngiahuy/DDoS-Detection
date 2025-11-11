@@ -66,13 +66,12 @@ const featureImportance = [
 ];
 
 const trainingHistory = [
-	{ epoch: 1, train_acc: 0.76, val_acc: 0.74, loss: 0.52 },
-	{ epoch: 2, train_acc: 0.83, val_acc: 0.81, loss: 0.38 },
-	{ epoch: 3, train_acc: 0.88, val_acc: 0.86, loss: 0.28 },
-	{ epoch: 4, train_acc: 0.91, val_acc: 0.89, loss: 0.21 },
-	{ epoch: 5, train_acc: 0.93, val_acc: 0.91, loss: 0.17 },
-	{ epoch: 6, train_acc: 0.94, val_acc: 0.92, loss: 0.14 },
-	{ epoch: 7, train_acc: 0.95, val_acc: 0.94, loss: 0.12 },
+	{ version: 'v2.0.0', trainAccuracy: 90.5, testAccuracy: 88.9 },
+    { version: 'v2.1.0', trainAccuracy: 92.1, testAccuracy: 90.8 },
+    { version: 'v2.2.0', trainAccuracy: 93.3, testAccuracy: 92.5 },
+    { version: 'v2.3.0', trainAccuracy: 94.5, testAccuracy: 93.8 },
+    { version: 'v2.4.1', trainAccuracy: 95.1, testAccuracy: 94.2 },
+	{ version: 'v2.5.0', trainAccuracy: 95.8, testAccuracy: 94.7 },
 ];
 
 // Mock data cho Validation
@@ -308,44 +307,52 @@ export default function DataScientistPage() {
 					</CardHeader>
 					<CardContent>
 						<ResponsiveContainer width="100%" height={300}>
-							<LineChart data={trainingHistory}>
-								<CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-								<XAxis
-									dataKey="epoch"
-									stroke="#64748b"
-									label={{
-										value: 'Epoch',
-										position: 'insideBottom',
-										offset: -5,
-										fill: '#94a3b8',
-									}}
-								/>
-								<YAxis stroke="#64748b" />
-								<Tooltip
-									contentStyle={{
-										backgroundColor: '#1e293b',
-										border: '1px solid #334155',
-										borderRadius: '8px',
-									}}
-									labelStyle={{ color: '#e2e8f0' }}
-								/>
-								<Legend />
-								<Line
-									type="monotone"
-									dataKey="train_acc"
-									stroke="#10b981"
-									strokeWidth={2}
-									name="Train Accuracy"
-								/>
-								<Line
-									type="monotone"
-									dataKey="val_acc"
-									stroke="#06b6d4"
-									strokeWidth={2}
-									name="Val Accuracy"
-								/>
-							</LineChart>
-						</ResponsiveContainer>
+                            <LineChart
+                                data={trainingHistory}
+                                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                <XAxis dataKey="version" stroke="#64748b" style={{ fontSize: '12px' }} />
+                                <YAxis
+                                    stroke="#64748b"
+                                    style={{ fontSize: '12px' }}
+                                    domain={[80, 100]} // Zoom vào khoảng 80-100% để dễ thấy sự thay đổi
+                                    tickFormatter={(value) => `${value}%`}
+                                />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#1e293b',
+                                        border: '1px solid #334155',
+                                        borderRadius: '8px',
+                                        fontSize: '12px'
+                                    }}
+                                    labelStyle={{ color: '#e2e8f0' }}
+                                    formatter={(value: number, name: string) => [
+                                        `${value.toFixed(2)}%`,
+                                        name === 'trainAccuracy' ? 'Train Accuracy' : 'Test Accuracy',
+                                    ]}
+                                />
+                                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                                {/* Đường cho Train Accuracy */}
+                                <Line
+                                    type="monotone"
+                                    dataKey="trainAccuracy"
+                                    stroke="#10b981" // Green
+                                    strokeWidth={3}
+                                    name="Train Accuracy"
+                                    activeDot={{ r: 8 }}
+                                />
+                                {/* Đường cho Test Accuracy */}
+                                <Line
+                                    type="monotone"
+                                    dataKey="testAccuracy"
+                                    stroke="#06b6d4" // Cyan
+                                    strokeWidth={3}
+                                    name="Test Accuracy"
+                                    activeDot={{ r: 8 }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
 					</CardContent>
 				</Card>
 			</div>
@@ -582,22 +589,6 @@ export default function DataScientistPage() {
 									<Input
 										type="number"
 										value="23"
-										className="w-20 bg-slate-800 border-slate-700 text-white"
-									/>
-								</div>
-							</div>
-							<div>
-								<Label className="text-slate-300">Epoch</Label>
-								<div className="flex items-center gap-4 mt-2">
-									<Slider
-										defaultValue={[50]}
-										max={200}
-										step={1}
-										className="flex-1"
-									/>
-									<Input
-										type="number"
-										value="10"
 										className="w-20 bg-slate-800 border-slate-700 text-white"
 									/>
 								</div>
