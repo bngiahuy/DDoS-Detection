@@ -15,13 +15,13 @@ export default function NotFoundPage({ goHome }: { goHome?: () => void }) {
 				</CardHeader>
 				<CardContent className="text-center">
 					<p className="text-slate-400 mb-6 text-lg">
-						Trang bạn tìm kiếm không tồn tại hoặc đã bị di chuyển.
+						Sorry, the page you are looking for does not exist.
 					</p>
 					<Button
 						className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full"
 						onClick={goHome}
 					>
-						Quay về trang chủ
+						Go back to Home
 					</Button>
 				</CardContent>
 			</Card>

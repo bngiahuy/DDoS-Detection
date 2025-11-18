@@ -29,170 +29,164 @@ import {
 	Legend,
 } from 'recharts';
 
-// Mock data
-const systemMetrics = [
-	{ time: '10:00', cpu: 45, memory: 62, network: 340 },
-	{ time: '10:05', cpu: 52, memory: 64, network: 420 },
-	{ time: '10:10', cpu: 68, memory: 71, network: 680 },
-	{ time: '10:15', cpu: 82, memory: 78, network: 920 },
-	{ time: '10:20', cpu: 91, memory: 84, network: 1240 },
-	{ time: '10:25', cpu: 88, memory: 86, network: 1180 },
-	{ time: '10:30', cpu: 76, memory: 79, network: 850 },
-];
+import { useState, useEffect } from 'react';
 
-const pipelineStages = [
-	{ name: 'Source', status: 'success', duration: '2s', timestamp: '10:15:23' },
-	{ name: 'Build', status: 'success', duration: '45s', timestamp: '10:16:08' },
-	{
-		name: 'Test',
-		status: 'success',
-		duration: '1m 23s',
-		timestamp: '10:17:31',
-	},
-	{
-		name: 'Security Scan',
-		status: 'success',
-		duration: '34s',
-		timestamp: '10:18:05',
-	},
-	{
-		name: 'Deploy to Staging',
-		status: 'success',
-		duration: '28s',
-		timestamp: '10:18:33',
-	},
-	{
-		name: 'Integration Tests',
-		status: 'running',
-		duration: '12s',
-		timestamp: '10:18:45',
-	},
-	{
-		name: 'Deploy to Production',
-		status: 'pending',
-		duration: '-',
-		timestamp: '-',
-	},
-];
+interface SystemMetrics {
+	time: string;
+	cpu: number;
+	memory: number;
+	network: number;
+}
 
-const services = [
-	{
-		name: 'ml-inference-api',
-		status: 'running',
-		version: 'v2.4.1',
-		replicas: '3/3',
-		cpu: '42%',
-		memory: '1.8 GB',
-		uptime: '12d 5h',
-	},
-	{
-		name: 'traffic-collector',
-		status: 'running',
-		version: 'v1.9.3',
-		replicas: '5/5',
-		cpu: '68%',
-		memory: '3.2 GB',
-		uptime: '12d 5h',
-	},
-	{
-		name: 'alert-manager',
-		status: 'running',
-		version: 'v3.1.0',
-		replicas: '2/2',
-		cpu: '12%',
-		memory: '512 MB',
-		uptime: '12d 5h',
-	},
-	{
-		name: 'model-trainer',
-		status: 'degraded',
-		version: 'v2.4.0',
-		replicas: '1/2',
-		cpu: '89%',
-		memory: '4.1 GB',
-		uptime: '2h 34m',
-	},
-	{
-		name: 'metrics-exporter',
-		status: 'running',
-		version: 'v1.2.1',
-		replicas: '3/3',
-		cpu: '8%',
-		memory: '256 MB',
-		uptime: '12d 5h',
-	},
-];
+interface PipelineStage {
+	name: string;
+	status: string;
+	duration: string;
+	timestamp: string;
+}
 
-const recentLogs = [
-	{
-		timestamp: '10:30:42',
-		level: 'INFO',
-		service: 'ml-inference-api',
-		message: 'Prediction request processed successfully',
-	},
-	{
-		timestamp: '10:30:38',
-		level: 'WARN',
-		service: 'model-trainer',
-		message: 'High memory usage detected: 4.1GB/4.5GB',
-	},
-	{
-		timestamp: '10:30:35',
-		level: 'ERROR',
-		service: 'model-trainer',
-		message: 'Replica 2 failed health check, attempting restart',
-	},
-	{
-		timestamp: '10:30:32',
-		level: 'INFO',
-		service: 'traffic-collector',
-		message: 'Processed 45,230 packets in last minute',
-	},
-	{
-		timestamp: '10:30:28',
-		level: 'INFO',
-		service: 'alert-manager',
-		message: 'Critical alert sent to Network Admin dashboard',
-	},
-	{
-		timestamp: '10:30:25',
-		level: 'WARN',
-		service: 'ml-inference-api',
-		message: 'Response time exceeded threshold: 245ms',
-	},
-	{
-		timestamp: '10:30:21',
-		level: 'INFO',
-		service: 'metrics-exporter',
-		message: 'Metrics exported to Prometheus',
-	},
-];
+interface ServiceStatus {
+	name: string;
+	status: string;
+	version: string;
+	replicas: string;
+	cpu: string;
+	memory: string;
+	uptime: string;
+}
 
-const alerts = [
-	{
-		id: 1,
-		severity: 'critical',
-		message: 'Model trainer service degraded - 1/2 replicas running',
-		time: '2 min ago',
-		service: 'model-trainer',
-	},
-	{
-		id: 2,
-		severity: 'warning',
-		message: 'High CPU usage on inference API pods (>80%)',
-		time: '5 min ago',
-		service: 'ml-inference-api',
-	},
-	{
-		id: 3,
-		severity: 'warning',
-		message: 'Network bandwidth approaching limit (85%)',
-		time: '8 min ago',
-		service: 'traffic-collector',
-	},
-];
+interface LogEntry {
+	timestamp: string;
+	level: string;
+	service: string;
+	message: string;
+}
+
+interface Alert {
+	id: number;
+	severity: string;
+	message: string;
+	time: string;
+	service: string;
+}
 
 export default function DevOpsPage() {
+	// System metrics state
+	const [systemMetrics, setSystemMetrics] = useState<SystemMetrics[]>([]);
+	const [metricsLoading, setMetricsLoading] = useState(true);
+	const [metricsError, setMetricsError] = useState<string | null>(null);
+
+	// Pipeline stages state
+	const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([]);
+	const [pipelineLoading, setPipelineLoading] = useState(true);
+	const [pipelineError, setPipelineError] = useState<string | null>(null);
+
+	// Services state
+	const [services, setServices] = useState<ServiceStatus[]>([]);
+	const [servicesLoading, setServicesLoading] = useState(true);
+	const [servicesError, setServicesError] = useState<string | null>(null);
+
+	// Logs state
+	const [recentLogs, setRecentLogs] = useState<LogEntry[]>([]);
+	const [logsLoading, setLogsLoading] = useState(true);
+	const [logsError, setLogsError] = useState<string | null>(null);
+
+	// Alerts state
+	const [alerts, setAlerts] = useState<Alert[]>([]);
+	const [alertsLoading, setAlertsLoading] = useState(true);
+	const [alertsError, setAlertsError] = useState<string | null>(null);
+
+	const metricsFetch = () => {
+		setMetricsLoading(true);
+		fetch('http://localhost:8000/api/v1/metrics')
+			.then((res) => {
+				if (!res.ok) throw new Error('Failed to fetch metrics');
+				return res.json();
+			})
+			.then((data) => {
+				setSystemMetrics(data);
+				setMetricsLoading(false);
+			})
+			.catch((err) => {
+				setMetricsError(err.message);
+				setMetricsLoading(false);
+			});
+	};
+
+	useEffect(() => {
+		metricsFetch();
+		const interval = setInterval(metricsFetch, 5000); // Refresh every 5 seconds
+		return () => clearInterval(interval);
+	}, []);
+
+	useEffect(() => {
+		setPipelineLoading(true);
+		fetch('http://localhost:8000/api/v1/pipeline')
+			.then((res) => {
+				if (!res.ok) throw new Error('Failed to fetch pipeline');
+				return res.json();
+			})
+			.then((data) => {
+				setPipelineStages(data);
+				setPipelineLoading(false);
+			})
+			.catch((err) => {
+				setPipelineError(err.message);
+				setPipelineLoading(false);
+			});
+	}, []);
+
+	useEffect(() => {
+		setServicesLoading(true);
+		fetch('http://localhost:8000/api/v1/services')
+			.then((res) => {
+				if (!res.ok) throw new Error('Failed to fetch services');
+				return res.json();
+			})
+			.then((data) => {
+				setServices(data);
+				setServicesLoading(false);
+			})
+			.catch((err) => {
+				setServicesError(err.message);
+				setServicesLoading(false);
+			});
+	}, []);
+
+	useEffect(() => {
+		setLogsLoading(true);
+		fetch('http://localhost:8000/api/v1/logs')
+			.then((res) => {
+				if (!res.ok) throw new Error('Failed to fetch logs');
+				return res.json();
+			})
+			.then((data) => {
+				setRecentLogs(data);
+				setLogsLoading(false);
+			})
+			.catch((err) => {
+				setLogsError(err.message);
+				setLogsLoading(false);
+			});
+	}, []);
+
+	useEffect(() => {
+		setAlertsLoading(true);
+		fetch('http://localhost:8000/api/v1/alerts')
+			.then((res) => {
+				if (!res.ok) throw new Error('Failed to fetch alerts');
+				return res.json();
+			})
+			.then((data) => {
+				setAlerts(data);
+				setAlertsLoading(false);
+			})
+			.catch((err) => {
+				setAlertsError(err.message);
+				setAlertsLoading(false);
+			});
+	}, []);
+
 	const { attackActive } = useContext(AttackContext);
 	const getStatusColor = (status: string) => {
 		switch (status) {
@@ -243,12 +237,13 @@ export default function DevOpsPage() {
 
 	return (
 		<div className="space-y-6">
-			{/* System Alerts (only show if attackActive) */}
-			{attackActive ? (
+			{/* System Alerts (only show if critical alerts exist) */}
+			{alerts.some((a) => a.severity === 'critical') ? (
 				<Alert className="border-red-500/50 bg-red-500/10">
 					<AlertCircle color="red" width={5} height={5} />
 					<AlertDescription className="text-red-300">
-						1 critical system issue requires immediate attention
+						{alerts.filter((a) => a.severity === 'critical').length} critical
+						system issue(s) require immediate attention
 					</AlertDescription>
 				</Alert>
 			) : (
@@ -271,14 +266,24 @@ export default function DevOpsPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl text-white">
-							{attackActive ? '95%' : '32%'}
+							{metricsLoading
+								? '...'
+								: systemMetrics.length > 0
+								? `${systemMetrics[systemMetrics.length - 1].cpu}%`
+								: '32%'}
 						</div>
 						<div className="mt-3 bg-slate-800 rounded-full h-2 overflow-hidden">
 							<div
 								className={`h-full ${
 									attackActive ? 'bg-orange-500' : 'bg-green-500'
 								} rounded-full`}
-								style={{ width: attackActive ? '95%' : '32%' }}
+								style={{
+									width: metricsLoading
+										? '0%'
+										: systemMetrics.length > 0
+										? `${systemMetrics[systemMetrics.length - 1].cpu}%`
+										: '32%',
+								}}
 							/>
 						</div>
 						<p className="text-slate-400 text-xs mt-2">8 cores @ 3.2 GHz</p>
@@ -294,14 +299,24 @@ export default function DevOpsPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl text-white">
-							{attackActive ? '99%' : '41%'}
+							{metricsLoading
+								? '...'
+								: systemMetrics.length > 0
+								? `${systemMetrics[systemMetrics.length - 1].memory}%`
+								: '41%'}
 						</div>
 						<div className="mt-3 bg-slate-800 rounded-full h-2 overflow-hidden">
 							<div
 								className={`h-full ${
 									attackActive ? 'bg-orange-500' : 'bg-green-500'
 								} rounded-full`}
-								style={{ width: attackActive ? '99%' : '41%' }}
+								style={{
+									width: metricsLoading
+										? '0%'
+										: systemMetrics.length > 0
+										? `${systemMetrics[systemMetrics.length - 1].memory}%`
+										: '41%',
+								}}
 							/>
 						</div>
 						<p className="text-slate-400 text-xs mt-2">16 GB</p>
@@ -317,19 +332,46 @@ export default function DevOpsPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl text-white">
-							{attackActive ? '1000 Mbps' : '210 Mbps'}
+							{metricsLoading
+								? '...'
+								: systemMetrics.length > 0
+								? `${systemMetrics[systemMetrics.length - 1].network} Mbps`
+								: '210 Mbps'}
 						</div>
 						<div className="mt-3 bg-slate-800 rounded-full h-2 overflow-hidden">
 							<div
 								className={`h-full ${
 									attackActive ? 'bg-cyan-500' : 'bg-green-500'
 								} rounded-full`}
-								style={{ width: attackActive ? '100%' : '21%' }}
+								style={{
+									width: metricsLoading
+										? '0%'
+										: systemMetrics.length > 0
+										? `${Math.min(
+												systemMetrics[systemMetrics.length - 1].network / 10,
+												100
+										  )}%`
+										: '21%',
+								}}
 							/>
 						</div>
 						<p className="text-slate-400 text-xs mt-2">
-							↓ {attackActive ? '820 Mbps' : '120 Mbps'} / ↑{' '}
-							{attackActive ? '180 Mbps' : '90 Mbps'}
+							↓{' '}
+							{metricsLoading
+								? '...'
+								: systemMetrics.length > 0
+								? `${Math.floor(
+										systemMetrics[systemMetrics.length - 1].network * 0.6
+								  )} Mbps`
+								: '120 Mbps'}{' '}
+							/ ↑{' '}
+							{metricsLoading
+								? '...'
+								: systemMetrics.length > 0
+								? `${Math.floor(
+										systemMetrics[systemMetrics.length - 1].network * 0.4
+								  )} Mbps`
+								: '90 Mbps'}
 						</p>
 					</CardContent>
 				</Card>
@@ -403,36 +445,44 @@ export default function DevOpsPage() {
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-3">
-						{pipelineStages.map((stage, index) => (
-							<div key={index} className="flex items-center gap-4">
-								<div
-									className={`p-2 rounded-lg ${getStatusColor(stage.status)}`}
-								>
-									{getStatusIcon(stage.status)}
-								</div>
-								<div className="flex-1">
-									<div className="flex items-center justify-between">
-										<span className="text-white">{stage.name}</span>
-										<div className="flex items-center gap-3">
-											<span className="text-slate-400 text-sm">
-												{stage.duration}
-											</span>
-											<span className="text-slate-500 text-xs">
-												{stage.timestamp}
-											</span>
-										</div>
-									</div>
-									{stage.status === 'running' && (
-										<div className="mt-2 bg-slate-800 rounded-full h-1 overflow-hidden">
-											<div
-												className="h-full bg-blue-500 rounded-full animate-pulse"
-												style={{ width: '60%' }}
-											/>
-										</div>
-									)}
-								</div>
+						{pipelineLoading ? (
+							<div className="text-slate-400">Loading pipeline...</div>
+						) : pipelineError ? (
+							<div className="text-red-400">
+								Error loading pipeline: {pipelineError}
 							</div>
-						))}
+						) : (
+							pipelineStages.map((stage, index) => (
+								<div key={index} className="flex items-center gap-4">
+									<div
+										className={`p-2 rounded-lg ${getStatusColor(stage.status)}`}
+									>
+										{getStatusIcon(stage.status)}
+									</div>
+									<div className="flex-1">
+										<div className="flex items-center justify-between">
+											<span className="text-white">{stage.name}</span>
+											<div className="flex items-center gap-3">
+												<span className="text-slate-400 text-sm">
+													{stage.duration}
+												</span>
+												<span className="text-slate-500 text-xs">
+													{stage.timestamp}
+												</span>
+											</div>
+										</div>
+										{stage.status === 'running' && (
+											<div className="mt-2 bg-slate-800 rounded-full h-1 overflow-hidden">
+												<div
+													className="h-full bg-blue-500 rounded-full animate-pulse"
+													style={{ width: '60%' }}
+												/>
+											</div>
+										)}
+									</div>
+								</div>
+							))
+						)}
 					</div>
 					<div className="flex gap-3 mt-6">
 						<Button
@@ -463,68 +513,76 @@ export default function DevOpsPage() {
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-3">
-						{services.map((service, index) => (
-							<div
-								key={index}
-								className="p-4 bg-slate-800/50 rounded-lg border border-slate-700"
-							>
-								<div className="flex items-start justify-between mb-3">
-									<div className="flex-1">
-										<div className="flex items-center gap-3 mb-2">
-											<h4 className="text-white">{service.name}</h4>
-											<Badge className={getStatusColor(service.status)}>
-												{service.status}
-											</Badge>
-											<Badge className="bg-slate-700 text-slate-300 border-slate-600 text-xs">
-												{service.version}
-											</Badge>
+						{servicesLoading ? (
+							<div className="text-slate-400">Loading services...</div>
+						) : servicesError ? (
+							<div className="text-red-400">
+								Error loading services: {servicesError}
+							</div>
+						) : (
+							services.map((service, index) => (
+								<div
+									key={index}
+									className="p-4 bg-slate-800/50 rounded-lg border border-slate-700"
+								>
+									<div className="flex items-start justify-between mb-3">
+										<div className="flex-1">
+											<div className="flex items-center gap-3 mb-2">
+												<h4 className="text-white">{service.name}</h4>
+												<Badge className={getStatusColor(service.status)}>
+													{service.status}
+												</Badge>
+												<Badge className="bg-slate-700 text-slate-300 border-slate-600 text-xs">
+													{service.version}
+												</Badge>
+											</div>
+											<div className="grid grid-cols-4 gap-4 text-sm">
+												<div>
+													<span className="text-slate-400">Replicas:</span>
+													<span className="text-white ml-2">
+														{service.replicas}
+													</span>
+												</div>
+												<div>
+													<span className="text-slate-400">CPU:</span>
+													<span className="text-white ml-2">{service.cpu}</span>
+												</div>
+												<div>
+													<span className="text-slate-400">Memory:</span>
+													<span className="text-white ml-2">
+														{service.memory}
+													</span>
+												</div>
+												<div>
+													<span className="text-slate-400">Uptime:</span>
+													<span className="text-white ml-2">
+														{service.uptime}
+													</span>
+												</div>
+											</div>
 										</div>
-										<div className="grid grid-cols-4 gap-4 text-sm">
-											<div>
-												<span className="text-slate-400">Replicas:</span>
-												<span className="text-white ml-2">
-													{service.replicas}
-												</span>
-											</div>
-											<div>
-												<span className="text-slate-400">CPU:</span>
-												<span className="text-white ml-2">{service.cpu}</span>
-											</div>
-											<div>
-												<span className="text-slate-400">Memory:</span>
-												<span className="text-white ml-2">
-													{service.memory}
-												</span>
-											</div>
-											<div>
-												<span className="text-slate-400">Uptime:</span>
-												<span className="text-white ml-2">
-													{service.uptime}
-												</span>
-											</div>
-										</div>
-									</div>
-									<div className="flex gap-2">
-										<Button
-											size="sm"
-											variant="outline"
-											className="border-slate-700 hover:bg-amber-50 h-8"
-										>
-											<PlayCircle className="w-3 h-3 mr-1" />
-											Restart
-										</Button>
-										{service.status === 'degraded' && (
+										<div className="flex gap-2">
 											<Button
 												size="sm"
-												className="bg-orange-600 hover:bg-orange-700 text-white h-8"
+												variant="outline"
+												className="border-slate-700 hover:bg-amber-50 h-8"
 											>
-												Scale Up
+												<PlayCircle className="w-3 h-3 mr-1" />
+												Restart
 											</Button>
-										)}
+											{service.status === 'degraded' && (
+												<Button
+													size="sm"
+													className="bg-orange-600 hover:bg-orange-700 text-white h-8"
+												>
+													Scale Up
+												</Button>
+											)}
+										</div>
 									</div>
 								</div>
-							</div>
-						))}
+							))
+						)}
 					</div>
 				</CardContent>
 			</Card>
@@ -538,27 +596,37 @@ export default function DevOpsPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-3">
-							{alerts.map((alert) => (
-								<div
-									key={alert.id}
-									className={`p-3 rounded-lg border ${getStatusColor(
-										alert.severity
-									)}`}
-								>
-									<div className="flex items-start justify-between mb-2">
-										<Badge
-											className={`${getStatusColor(alert.severity)} text-xs`}
-										>
-											{alert.severity.toUpperCase()}
-										</Badge>
-										<span className="text-slate-400 text-xs">{alert.time}</span>
-									</div>
-									<p className="text-white text-sm mb-1">{alert.message}</p>
-									<p className="text-slate-400 text-xs">
-										Service: {alert.service}
-									</p>
+							{alertsLoading ? (
+								<div className="text-slate-400">Loading alerts...</div>
+							) : alertsError ? (
+								<div className="text-red-400">
+									Error loading alerts: {alertsError}
 								</div>
-							))}
+							) : (
+								alerts.map((alert) => (
+									<div
+										key={alert.id}
+										className={`p-3 rounded-lg border ${getStatusColor(
+											alert.severity
+										)}`}
+									>
+										<div className="flex items-start justify-between mb-2">
+											<Badge
+												className={`${getStatusColor(alert.severity)} text-xs`}
+											>
+												{alert.severity.toUpperCase()}
+											</Badge>
+											<span className="text-slate-400 text-xs">
+												{alert.time}
+											</span>
+										</div>
+										<p className="text-white text-sm mb-1">{alert.message}</p>
+										<p className="text-slate-400 text-xs">
+											Service: {alert.service}
+										</p>
+									</div>
+								))
+							)}
 						</div>
 					</CardContent>
 				</Card>
@@ -570,21 +638,31 @@ export default function DevOpsPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-2 font-mono text-xs">
-							{recentLogs.map((log, index) => (
-								<div
-									key={index}
-									className="p-2 bg-slate-950 rounded border border-slate-800"
-								>
-									<div className="flex items-start gap-2">
-										<span className="text-slate-500">{log.timestamp}</span>
-										<span className={getLogLevelColor(log.level)}>
-											[{log.level}]
-										</span>
-										<span className="text-cyan-400">{log.service}</span>
-									</div>
-									<div className="text-slate-300 mt-1 ml-2">{log.message}</div>
+							{logsLoading ? (
+								<div className="text-slate-400">Loading logs...</div>
+							) : logsError ? (
+								<div className="text-red-400">
+									Error loading logs: {logsError}
 								</div>
-							))}
+							) : (
+								recentLogs.map((log, index) => (
+									<div
+										key={index}
+										className="p-2 bg-slate-950 rounded border border-slate-800"
+									>
+										<div className="flex items-start gap-2">
+											<span className="text-slate-500">{log.timestamp}</span>
+											<span className={getLogLevelColor(log.level)}>
+												[{log.level}]
+											</span>
+											<span className="text-cyan-400">{log.service}</span>
+										</div>
+										<div className="text-slate-300 mt-1 ml-2">
+											{log.message}
+										</div>
+									</div>
+								))
+							)}
 						</div>
 						<Button
 							variant="outline"

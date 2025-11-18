@@ -1,14 +1,11 @@
 import { useState, createContext, useContext } from 'react';
 
-// Context for attack status
-export const AttackContext = createContext({
-	attackActive: false,
-	setAttackActive: (_: boolean) => {},
-});
+
 import { useNavigate, BrowserRouter, Routes, Route } from 'react-router-dom';
 import NetworkAdminPage from '../components/NetworkAdminPage';
 import DataScientistPage from '../components/DataScientistPage';
 import DevOpsPage from '../components/DevOpsPage';
+import NotFoundPage from '../components/NotFoundPage';
 // import DatasetPage from '../components/DatasetPage';
 // import CreateDataset from '../components/CreateDataset';
 // import CreatePreprocessing from '../components/CreatePreprocessing';
@@ -22,11 +19,17 @@ import {
 	// FileSpreadsheet,
 	Server,
 	Power,
-	Pause
+	Pause,
 } from 'lucide-react';
 
+// Context for attack status
+export const AttackContext = createContext({
+	attackActive: false,
+	setAttackActive: (_: boolean) => {},
+});
+
 export default function App() {
-	const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+	const [sidebarOpen, setSidebarOpen] = useState(true);
 	// DDoS Attack Simulation State
 	const [attackActive, setAttackActive] = useState(false);
 
@@ -177,9 +180,12 @@ export default function App() {
 									path="/create-preprocessing"
 									element={<CreatePreprocessing />}
 								/> */}
+								<Route path="*" element={<NotFoundPage />} />
 							</Routes>
 						</main>
 					</div>
+
+					
 				</div>
 			</BrowserRouter>
 		</AttackContext.Provider>

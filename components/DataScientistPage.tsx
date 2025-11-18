@@ -6,7 +6,6 @@ import { Input } from './ui/input';
 import { Alert } from './ui/alert';
 import { Progress } from './ui/progress';
 import { Label } from './ui/label';
-import { Slider } from './ui/slider';
 import {
 	Brain,
 	TrendingUp,
@@ -67,10 +66,10 @@ const featureImportance = [
 
 const trainingHistory = [
 	{ version: 'v2.0.0', trainAccuracy: 90.5, testAccuracy: 88.9 },
-    { version: 'v2.1.0', trainAccuracy: 92.1, testAccuracy: 90.8 },
-    { version: 'v2.2.0', trainAccuracy: 93.3, testAccuracy: 92.5 },
-    { version: 'v2.3.0', trainAccuracy: 94.5, testAccuracy: 93.8 },
-    { version: 'v2.4.1', trainAccuracy: 95.1, testAccuracy: 94.2 },
+	{ version: 'v2.1.0', trainAccuracy: 92.1, testAccuracy: 90.8 },
+	{ version: 'v2.2.0', trainAccuracy: 93.3, testAccuracy: 92.5 },
+	{ version: 'v2.3.0', trainAccuracy: 94.5, testAccuracy: 93.8 },
+	{ version: 'v2.4.1', trainAccuracy: 95.1, testAccuracy: 94.2 },
 	{ version: 'v2.5.0', trainAccuracy: 95.8, testAccuracy: 94.7 },
 ];
 
@@ -141,6 +140,12 @@ export default function DataScientistPage() {
 		percent: number;
 	} | null>(null);
 	const [isTraining, setIsTraining] = useState(false);
+
+	const [numberOfTrees, setNumberOfTrees] = useState(100);
+	const [maxDepth, setMaxDepth] = useState(10);
+	const [minSamplesSplit, setMinSamplesSplit] = useState(2);
+	const [minSamplesLeaf, setMinSamplesLeaf] = useState(1);
+	const [maxFeatures, setMaxFeatures] = useState(20);
 
 	// Hàm xử lý upload
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -307,52 +312,58 @@ export default function DataScientistPage() {
 					</CardHeader>
 					<CardContent>
 						<ResponsiveContainer width="100%" height={300}>
-                            <LineChart
-                                data={trainingHistory}
-                                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                <XAxis dataKey="version" stroke="#64748b" style={{ fontSize: '12px' }} />
-                                <YAxis
-                                    stroke="#64748b"
-                                    style={{ fontSize: '12px' }}
-                                    domain={[80, 100]} // Zoom vào khoảng 80-100% để dễ thấy sự thay đổi
-                                    tickFormatter={(value) => `${value}%`}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#1e293b',
-                                        border: '1px solid #334155',
-                                        borderRadius: '8px',
-                                        fontSize: '12px'
-                                    }}
-                                    labelStyle={{ color: '#e2e8f0' }}
-                                    formatter={(value: number, name: string) => [
-                                        `${value.toFixed(2)}%`,
-                                        name === 'trainAccuracy' ? 'Train Accuracy' : 'Test Accuracy',
-                                    ]}
-                                />
-                                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                                {/* Đường cho Train Accuracy */}
-                                <Line
-                                    type="monotone"
-                                    dataKey="trainAccuracy"
-                                    stroke="#10b981" // Green
-                                    strokeWidth={3}
-                                    name="Train Accuracy"
-                                    activeDot={{ r: 8 }}
-                                />
-                                {/* Đường cho Test Accuracy */}
-                                <Line
-                                    type="monotone"
-                                    dataKey="testAccuracy"
-                                    stroke="#06b6d4" // Cyan
-                                    strokeWidth={3}
-                                    name="Test Accuracy"
-                                    activeDot={{ r: 8 }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+							<LineChart
+								data={trainingHistory}
+								margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+							>
+								<CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+								<XAxis
+									dataKey="version"
+									stroke="#64748b"
+									style={{ fontSize: '12px' }}
+								/>
+								<YAxis
+									stroke="#64748b"
+									style={{ fontSize: '12px' }}
+									domain={[80, 100]} // Zoom vào khoảng 80-100% để dễ thấy sự thay đổi
+									tickFormatter={(value) => `${value}%`}
+								/>
+								<Tooltip
+									contentStyle={{
+										backgroundColor: '#1e293b',
+										border: '1px solid #334155',
+										borderRadius: '8px',
+										fontSize: '12px',
+									}}
+									labelStyle={{ color: '#e2e8f0' }}
+									formatter={(value: number, name: string) => [
+										`${value.toFixed(2)}%`,
+										name === 'trainAccuracy'
+											? 'Train Accuracy'
+											: 'Test Accuracy',
+									]}
+								/>
+								<Legend wrapperStyle={{ fontSize: '12px' }} />
+								{/* Đường cho Train Accuracy */}
+								<Line
+									type="monotone"
+									dataKey="trainAccuracy"
+									stroke="#10b981" // Green
+									strokeWidth={3}
+									name="Train Accuracy"
+									activeDot={{ r: 8 }}
+								/>
+								{/* Đường cho Test Accuracy */}
+								<Line
+									type="monotone"
+									dataKey="testAccuracy"
+									stroke="#06b6d4" // Cyan
+									strokeWidth={3}
+									name="Test Accuracy"
+									activeDot={{ r: 8 }}
+								/>
+							</LineChart>
+						</ResponsiveContainer>
 					</CardContent>
 				</Card>
 			</div>
@@ -512,85 +523,74 @@ export default function DataScientistPage() {
 						</div>
 
 						{/* Hyperparameters */}
-						<div className="space-y-4">
+						<div className="space-y-2">
 							<div>
 								<Label className="text-slate-300">Number of Trees</Label>
 								<div className="flex items-center gap-4 mt-2">
-									<Slider
-										defaultValue={[500]}
-										max={1000}
-										step={50}
-										className="flex-1"
-									/>
 									<Input
 										type="number"
-										value="500"
-										className="w-20 bg-slate-800 border-slate-700 text-white"
+										value={numberOfTrees}
+										className="w-20 bg-slate-800 border-slate-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 rounded-lg px-3 py-2 transition-colors"
+										onChange={(e) => setNumberOfTrees(Number(e.target.value))}
 									/>
+									<p className="text-slate-400 text-sm px-3 py-2 italic">
+										Recommended value: 100 - 500
+									</p>
 								</div>
 							</div>
-							<div>
-								<Label className="text-slate-300">Max Depth</Label>
-								<div className="flex items-center gap-4 mt-2">
-									<Slider
-										defaultValue={[15]}
-										max={30}
-										step={1}
-										className="flex-1"
-									/>
-									<Input
-										type="number"
-										value="15"
-										className="w-20 bg-slate-800 border-slate-700 text-white"
-									/>
-								</div>
+							<Label className="text-slate-300">Max Depth</Label>
+							<div className="flex items-center gap-4 mt-2">
+								<Input
+									type="number"
+									value={maxDepth}
+									className="w-20 bg-slate-800 border-slate-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 rounded-lg px-3 py-2 transition-colors"
+									onChange={(e) => setMaxDepth(Number(e.target.value))}
+								/>
+								<p className="text-slate-400 text-sm px-3 py-2  italic">
+									Recommended value: 10 - 50
+								</p>
 							</div>
+							<div></div>
 							<div>
 								<Label className="text-slate-300">Min Samples Split</Label>
 								<div className="flex items-center gap-4 mt-2">
-									<Slider
-										defaultValue={[2]}
-										max={20}
-										step={1}
-										className="flex-1"
-									/>
 									<Input
 										type="number"
-										value="2"
-										className="w-20 bg-slate-800 border-slate-700 text-white"
+										value={minSamplesSplit}
+										className="w-20 bg-slate-800 border-slate-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 rounded-lg px-3 py-2 transition-colors"
+										onChange={(e) => setMinSamplesSplit(Number(e.target.value))}
 									/>
+									<p className="text-slate-400 text-sm px-3 py-2 italic">
+										Recommended value: 2 - 10
+									</p>
 								</div>
 							</div>
 							<div>
 								<Label className="text-slate-300">Min Samples Leaf</Label>
 								<div className="flex items-center gap-4 mt-2">
-									<Slider
-										defaultValue={[50]}
-										max={200}
-										step={1}
-										className="flex-1"
-									/>
 									<Input
 										type="number"
-										value="50"
-										className="w-20 bg-slate-800 border-slate-700 text-white"
+										value={minSamplesLeaf}
+										className="w-20 bg-slate-800 border-slate-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 rounded-lg px-3 py-2 transition-colors"
+										onChange={(e) => setMinSamplesLeaf(Number(e.target.value))}
 									/>
+								<p className="text-slate-400 text-sm px-3 py-2 italic">
+									Recommended value: 1 - 5
+								</p>
 								</div>
 							</div>
 							<div>
 								<Label className="text-slate-300">Max Features</Label>
 								<div className="flex items-center gap-4 mt-2">
-									<Slider
-										defaultValue={[23]}
-										max={23}
-										step={1}
-										className="flex-1"
-									/>
 									<Input
 										type="number"
-										value="23"
-										className="w-20 bg-slate-800 border-slate-700 text-white"
+										value={maxFeatures}
+										className="w-20 bg-slate-800 border-slate-700 text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 rounded-lg px-3 py-2 transition-colors"
+										onChange={(e) => setMaxFeatures(Number(e.target.value))}
 									/>
+									<p className="text-slate-400 text-sm px-3 py-2 italic">
+										Recommended value: 1 - 23
+									</p>
 								</div>
 							</div>
 						</div>
