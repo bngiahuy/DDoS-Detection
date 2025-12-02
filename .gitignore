@@ -26,3 +26,7 @@ dist-ssr
 .env
 venv/
 __pycache__/
+
+CICFlowMeter/
+
+.idea/
