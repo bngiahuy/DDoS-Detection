@@ -1,0 +1,4 @@
+pyflowmeter
+fastapi
+uvicorn
+requests
