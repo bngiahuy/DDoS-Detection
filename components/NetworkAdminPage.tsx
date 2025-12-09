@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AttackContext } from '../src/App';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -27,8 +27,8 @@ import {
 	Legend,
 } from 'recharts';
 
-// Mock data
-const trafficData = [
+// Initial mock data
+const initialTrafficData = [
 	{ time: '10:00', normal: 4000, suspicious: 240, attack: 0 },
 	{ time: '10:05', normal: 3800, suspicious: 310, attack: 100 },
 	{ time: '10:10', normal: 3500, suspicious: 450, attack: 450 },
@@ -38,37 +38,37 @@ const trafficData = [
 	{ time: '10:30', normal: 3200, suspicious: 580, attack: 800 },
 ];
 
-const alertsData = [
+const defaultAlertsData = [
 	{
-		id: 1,
+		sample: 1,
 		severity: 'critical',
-		source: '192.168.45.123',
-		target: 'web-server-01',
-		type: 'SYN Flood',
+		src: '192.168.45.123',
+		dst: 'web-server-01',
+		label: 'SYN Flood',
 		time: '2 min ago',
 	},
 	{
-		id: 2,
+		sample: 2,
 		severity: 'critical',
-		source: '203.45.67.89',
-		target: 'api-gateway',
-		type: 'HTTP Flood',
+		src: '203.45.67.89',
+		dst: 'api-gateway',
+		label: 'HTTP Flood',
 		time: '3 min ago',
 	},
 	{
-		id: 3,
+		sample: 3,
 		severity: 'warning',
-		source: '45.123.67.234',
-		target: 'load-balancer',
-		type: 'Anomalous Traffic',
+		src: '45.123.67.234',
+		dst: 'load-balancer',
+		label: 'Anomalous Traffic',
 		time: '5 min ago',
 	},
 	{
-		id: 4,
+		sample: 4,
 		severity: 'critical',
-		source: '198.51.100.42',
-		target: 'database-proxy',
-		type: 'UDP Flood',
+		src: '198.51.100.42',
+		dst: 'database-proxy',
+		label: 'UDP Flood',
 		time: '7 min ago',
 	},
 ];
@@ -87,18 +87,89 @@ const topAttackers = [
 	{ ip: '172.16.254.1', requests: 18920, country: 'Unknown', blocked: true },
 ];
 
+type AlertType = {
+	sample: number;
+	src: string;
+	dst: string;
+	label: string;
+	severity: string;
+	time: string;
+};
+
+
 export default function NetworkAdminPage() {
 	const { attackActive } = useContext(AttackContext);
+
+	// State cho trafficData
+	const [trafficData, setTrafficData] = useState(initialTrafficData);
+
+	// Cập nhật dữ liệu traffic mỗi 5 giây (giả lập 5 phút)
+	useEffect(() => {
+		let interval: number;
+		if (attackActive) {
+			interval = setInterval(() => {
+				setTrafficData((prev) => {
+					// Tạo dữ liệu spike mới
+					const lastTime = prev[prev.length - 1]?.time || '10:30';
+					// Tăng thời gian lên 5 phút
+					const nextTime = (() => {
+						const [h, m] = lastTime.split(':').map(Number);
+						let min = m + 5;
+						let hour = h;
+						if (min >= 60) {
+							hour += 1;
+							min -= 60;
+						}
+						return `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+					})();
+					// Sinh giá trị spike
+					const spike = {
+						time: nextTime,
+						normal: Math.floor(7000 + Math.random() * 2000),
+						suspicious: Math.floor(1200 + Math.random() * 800),
+						attack: Math.floor(3000 + Math.random() * 2000),
+					};
+					// Giữ tối đa 7 điểm
+					const newData = [...prev.slice(-6), spike];
+					return newData;
+				});
+			}, 5000);
+		} else {
+			// Khi hết attack, reset về dữ liệu ban đầu
+			setTrafficData(initialTrafficData);
+		}
+		return () => { if (interval) clearInterval(interval); };
+	}, [attackActive]);
 	const getSeverityColor = (severity: string) => {
 		switch (severity) {
 			case 'critical':
 				return 'bg-red-500/10 text-red-400 border-red-500/20';
-			case 'warning':
+			case 'high':
 				return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+			case 'medium':
+				return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+			case 'low':
+				return 'bg-yellow-300/10 text-yellow-300 border-yellow-300/20';
 			default:
 				return 'bg-green-500/10 text-green-400 border-green-500/20';
 		}
 	};
+
+	const [alertsData, setAlertsData] = useState<AlertType[]>(defaultAlertsData);
+	
+	useEffect(() => {
+		const fetchAlerts = () => {
+			fetch("http://localhost:8000/get-alerts-log")
+				.then((response) => response.json())
+				.then((data) => setAlertsData(data.logs))
+				.catch((error) => console.error("Error fetching alerts log:", error));
+		};
+
+		fetchAlerts(); // Initial fetch
+		const interval = setInterval(fetchAlerts, 10000); // Refetch every 10 seconds
+
+		return () => clearInterval(interval); // Cleanup on unmount
+	}, []);
 
 	return (
 		<div className="space-y-6">
@@ -342,56 +413,58 @@ export default function NetworkAdminPage() {
 						<CardTitle className="text-white">Active Alerts</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-3">
-							{alertsData.map((alert) => (
-								<div
-									key={alert.id}
-									className={`p-4 rounded-lg border ${getSeverityColor(
-										alert.severity
-									)}`}
-								>
-									<div className="flex items-start justify-between mb-2">
-										<div>
-											<Badge
-												className={`${getSeverityColor(
-													alert.severity
-												)} text-xs`}
-											>
-												{alert.type}
-											</Badge>
-											<div className="text-slate-300 text-sm mt-2">
-												Source:{' '}
-												<span className="text-white">{alert.source}</span>
-											</div>
-											<div className="text-slate-300 text-sm">
-												Target:{' '}
-												<span className="text-white">{alert.target}</span>
-											</div>
-										</div>
-										<div className="flex items-center gap-1 text-slate-400 text-xs">
-											<Clock className="w-3 h-3" />
-											{alert.time}
-										</div>
-									</div>
-									<div className="flex gap-2 mt-3">
-										<Button
-											size="sm"
-											className="bg-red-600 hover:bg-red-700 text-white h-8"
-										>
-											<Ban className="w-3 h-3 mr-1" />
-											Block IP
-										</Button>
-										<Button
-											size="sm"
-											variant="outline"
-											className="border-slate-700 hover:bg-amber-50 h-8"
-										>
-											<Eye className="w-3 h-3 mr-1" />
-											Details
-										</Button>
-									</div>
+						<div className="space-y-3 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-slate-800">
+							{([...alertsData].slice(-5).reverse().length === 0) ? (
+								<div className="text-center py-8 text-green-400 text-lg font-semibold bg-green-900/10 rounded-lg border border-green-500/20">
+									No Active Alerts. That's great.
 								</div>
-							))}
+							) : (
+								[...alertsData].slice(-5).reverse().map((alert) => (
+									<div
+										key={alert.sample}
+										className={`p-4 rounded-lg border ${getSeverityColor(alert.severity)}`}
+									>
+										<div className="flex items-start justify-between mb-2">
+											<div>
+												<Badge
+													className={`${getSeverityColor(alert.severity)} text-xs`}
+												>
+													{alert.label}
+												</Badge>
+												<div className="text-slate-300 text-sm mt-2">
+													Source:{' '}
+													<span className="text-white">{alert.src}</span>
+												</div>
+												<div className="text-slate-300 text-sm">
+													Target:{' '}
+													<span className="text-white">{alert.dst}</span>
+												</div>
+											</div>
+											<div className="flex items-center gap-1 text-slate-400 text-xs">
+												<Clock className="w-3 h-3" />
+												{alert.time}
+											</div>
+										</div>
+										<div className="flex gap-2 mt-3">
+											<Button
+												size="sm"
+												className="bg-red-600 hover:bg-red-700 text-white h-8"
+											>
+												<Ban className="w-3 h-3 mr-1" />
+												Block IP
+											</Button>
+											<Button
+												size="sm"
+												variant="outline"
+												className="border-slate-700 hover:bg-amber-50 h-8"
+											>
+												<Eye className="w-3 h-3 mr-1" />
+												Details
+											</Button>
+										</div>
+									</div>
+								))
+							)}
 						</div>
 					</CardContent>
 				</Card>
