@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -26,20 +26,15 @@ import {
 	ResponsiveContainer,
 	Legend,
 } from 'recharts';
-// import {
-// 	AlertDialog,
-// 	AlertDialogContent,
-// 	AlertDialogHeader,
-// 	AlertDialogTitle,
-// } from './ui/alert-dialog';
 
-// Mock data
-const performanceMetrics = [
-	{ metric: 'Accuracy', value: 94.2, color: '#10b981' },
-	{ metric: 'Precision', value: 92.8, color: '#06b6d4' },
-	{ metric: 'Recall', value: 96.1, color: '#8b5cf6' },
-	{ metric: 'F1-Score', value: 84.4, color: '#f59e0b' },
-];
+
+// Color mapping for metrics
+const metricColors: Record<string, string> = {
+	Accuracy: '#10b981',
+	Precision: '#06b6d4',
+	Recall: '#8b5cf6',
+	'F1-Score': '#f59e0b',
+};
 
 const rocCurveData = [
 	{ fpr: 0, tpr: 0 },
@@ -54,14 +49,12 @@ const rocCurveData = [
 	{ fpr: 1, tpr: 1 },
 ];
 
-const featureImportance = [
-	{ feature: 'Packet Rate', importance: 0.284 },
-	{ feature: 'Bytes per Packet', importance: 0.198 },
-	{ feature: 'Connection Duration', importance: 0.165 },
-	{ feature: 'Protocol Type', importance: 0.142 },
-	{ feature: 'Unique IPs', importance: 0.098 },
-	{ feature: 'Port Distribution', importance: 0.067 },
-	{ feature: 'Time of Day', importance: 0.046 },
+
+const performanceMetrics = [
+	{ metric: 'Accuracy', value: 94.2, color: '#10b981' },
+	{ metric: 'Precision', value: 92.8, color: '#06b6d4' },
+	{ metric: 'Recall', value: 96.1, color: '#8b5cf6' },
+	{ metric: 'F1-Score', value: 84.4, color: '#f59e0b' },
 ];
 
 const trainingHistory = [
@@ -128,6 +121,11 @@ const validationAlarms = [
 ];
 
 export default function DataScientistPage() {
+	// Model info state
+	const [modelInfo, setModelInfo] = useState<any | null>(null);
+	// Training result state
+	const [trainingResult, setTrainingResult] = useState<any | null>(null);
+
 	// State cho upload
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -141,11 +139,27 @@ export default function DataScientistPage() {
 	} | null>(null);
 	const [isTraining, setIsTraining] = useState(false);
 
+	// Hyperparameters
 	const [numberOfTrees, setNumberOfTrees] = useState(100);
 	const [maxDepth, setMaxDepth] = useState(10);
 	const [minSamplesSplit, setMinSamplesSplit] = useState(2);
 	const [minSamplesLeaf, setMinSamplesLeaf] = useState(1);
 	const [maxFeatures, setMaxFeatures] = useState(20);
+
+	// Fetch model info on mount
+	useEffect(() => {
+		const fetchModelInfo = async () => {
+			try {
+				const res = await fetch('http://localhost:8000/api/model/info');
+				if (!res.ok) throw new Error('Failed to fetch model info');
+				const data = await res.json();
+				setModelInfo(data);
+			} catch (err) {
+				setModelInfo(null);
+			}
+		};
+		fetchModelInfo();
+	}, []);
 
 	// Hàm xử lý upload
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,8 +171,8 @@ export default function DataScientistPage() {
 			setUploadError('Chỉ chấp nhận file .csv');
 			return;
 		}
-		if (file.size > 20 * 1024 * 1024) {
-			setUploadError('Dung lượng file vượt quá 20MB');
+		if (file.size > 50 * 1024 * 1024) {
+			setUploadError('Dung lượng file vượt quá 50MB');
 			return;
 		}
 		setUploadedFile(file);
@@ -167,20 +181,47 @@ export default function DataScientistPage() {
 
 	// Hàm xử lý training
 	const handleStartTraining = async () => {
-		setIsTraining(true);
-		setTrainingStatus({ stage: 'Khởi tạo mô hình', percent: 0 });
-		await new Promise((res) => setTimeout(res, 1000));
-		setTrainingStatus({ stage: 'Tiền xử lý dữ liệu', percent: 20 });
-		await new Promise((res) => setTimeout(res, 1000));
-		setTrainingStatus({ stage: 'Training', percent: 50 });
-		// Tăng từ 50% đến 90% trong 5 giây
-		for (let p = 55; p <= 90; p += 7) {
-			await new Promise((res) => setTimeout(res, 1000));
-			setTrainingStatus({ stage: 'Training', percent: p });
+		setUploadError(null);
+		setTrainingResult(null);
+		if (!uploadedFile) {
+			setUploadError('Please upload a CSV dataset before training.');
+			return;
 		}
-		setTrainingStatus({ stage: 'Hoàn thành', percent: 100 });
-		await new Promise((res) => setTimeout(res, 1000));
-		setIsTraining(false);
+		setIsTraining(true);
+		setTrainingStatus({ stage: 'Uploading dataset...', percent: 5 });
+		try {
+			const formData = new FormData();
+			formData.append('data_file', uploadedFile);
+			formData.append('n_trees', numberOfTrees.toString());
+			formData.append('max_depth', maxDepth.toString());
+			formData.append('min_samples_split', minSamplesSplit.toString());
+			formData.append('min_samples_leaf', minSamplesLeaf.toString());
+			formData.append('max_features', maxFeatures.toString());
+
+			setTrainingStatus({ stage: 'Training in progress...', percent: 20 });
+			const res = await fetch('http://localhost:8000/api/model/train', {
+				method: 'POST',
+				body: formData,
+			});
+			if (!res.ok) {
+				throw new Error('Retraining failed.');
+			}
+			setTrainingStatus({ stage: 'Finalizing...', percent: 90 });
+			const data = await res.json();
+			setTrainingResult(data.data);
+			setTrainingStatus({ stage: 'Hoàn thành', percent: 100 });
+			// Refresh model info
+			const infoRes = await fetch('http://localhost:8000/api/model/info');
+			if (infoRes.ok) {
+				const infoData = await infoRes.json();
+				setModelInfo(infoData.data);
+			}
+		} catch (err: any) {
+			setUploadError(err.message || 'Retraining failed.');
+		} finally {
+			setIsTraining(false);
+			setTimeout(() => setTrainingStatus(null), 1500);
+		}
 	};
 
 	// Hàm reset
@@ -190,6 +231,7 @@ export default function DataScientistPage() {
 		setUploadedFile(null);
 		setUploadError(null);
 		setUploadSuccess(false);
+		setTrainingResult(null);
 		if (fileInputRef.current) fileInputRef.current.value = '';
 	};
 
@@ -204,10 +246,13 @@ export default function DataScientistPage() {
 								<Brain className="w-6 h-6 text-white" />
 							</div>
 							<div>
-								<h3 className="text-black">Random Forest Model v2.4.1</h3>
+								<h3 className="text-black">
+									Random Forest Model Overview
+								</h3>
 								<p className="text-slate-800 text-sm">
-									Last trained: Oct 31, 2025 09:23 AM • 500 trees • Max depth:
-									15
+									{modelInfo
+										? `Last trained: 10/12/2025 • 150 trees • Max depth: 2`
+										: 'Fetching model info...'}
 								</p>
 							</div>
 						</div>
@@ -406,42 +451,6 @@ export default function DataScientistPage() {
 					</div>
 				</CardContent>
 			</Card>
-			{/* Feature Importance */}
-			<Card className="bg-slate-900 border-slate-800">
-				<CardHeader>
-					<CardTitle className="text-white flex items-center gap-2">
-						<TrendingUp className="w-5 h-5" />
-						Feature Importance
-					</CardTitle>
-					<p className="text-slate-400 text-sm">
-						Top features contributing to model predictions
-					</p>
-				</CardHeader>
-				<CardContent>
-					<ResponsiveContainer width="100%" height={300}>
-						<BarChart data={featureImportance} layout="vertical">
-							<CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-							<XAxis type="number" stroke="#64748b" />
-							<YAxis
-								dataKey="feature"
-								type="category"
-								stroke="#64748b"
-								width={150}
-							/>
-							<Tooltip
-								contentStyle={{
-									backgroundColor: '#1e293b',
-									border: '1px solid #334155',
-									borderRadius: '8px',
-								}}
-								labelStyle={{ color: '#e2e8f0' }}
-								formatter={(value: number) => value.toFixed(3)}
-							/>
-							<Bar dataKey="importance" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
-						</BarChart>
-					</ResponsiveContainer>
-				</CardContent>
-			</Card>
 
 			{/* Model Retraining Interface */}
 			<Card className="bg-slate-900 border-slate-800">
@@ -488,7 +497,7 @@ export default function DataScientistPage() {
 										Choose File
 									</Button>
 									<p className="text-slate-400 text-sm mt-2">
-										Only .csv files are accepted, up to 20MB
+										Only .csv files are accepted, up to 50MB.
 									</p>
 									{uploadedFile && (
 										<div className="text-green-400 text-xs mt-2">
@@ -517,7 +526,11 @@ export default function DataScientistPage() {
 										: 'ddos_training_data_v2.csv'}
 								</div>
 								<div className="text-slate-400 text-xs mt-1">
-									1,245,890 samples • 23 features • Updated Oct 30
+									Size:{' '}
+									{uploadedFile
+										? `${(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB`
+										: '3.5 MB'}
+									
 								</div>
 							</div>
 						</div>
@@ -616,18 +629,65 @@ export default function DataScientistPage() {
 					</div>
 				</CardContent>
 			</Card>
+			{/* Feature Importance */}
+			<Card className="bg-slate-900 border-slate-800">
+				<CardHeader>
+					<CardTitle className="text-white flex items-center gap-2">
+						<TrendingUp className="w-5 h-5" />
+						Feature Importance
+					</CardTitle>
+					<p className="text-slate-400 text-sm">
+						Top features contributing to model predictions
+					</p>
+				</CardHeader>
+				<CardContent>
+					<ResponsiveContainer width="100%" height={300}>
+						{trainingResult ? 
+						<BarChart
+							data={
+								(trainingResult && trainingResult.feature_importances) ||
+								(modelInfo && modelInfo.feature_importances) ||
+								[]
+							}
+							layout="vertical"
+						>
+							<CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+							<XAxis type="number" stroke="#64748b" />
+							<YAxis
+								dataKey="feature"
+								type="category"
+								stroke="#64748b"
+								fontSize={12}
+								width={200}
+							/>
+							<Tooltip
+								contentStyle={{
+									backgroundColor: '#1e293b',
+									border: '1px solid #334155',
+									borderRadius: '8px',
+								}}
+								labelStyle={{ color: '#e2e8f0' }}
+								formatter={(value: number) => value.toFixed(3)}
+							/>
+							<Bar dataKey="importance" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+						</BarChart>
+						: <p className="text-slate-400 text-sm w-100">No Data...</p>
+						}
+					</ResponsiveContainer>
+				</CardContent>
+			</Card>
+
+			
 
 			{/* Kết quả chỉ hiển thị khi training xong */}
-			{trainingStatus?.stage === 'Hoàn thành' && (
+			{trainingResult && (
 				<div className="mb-4 ">
 					{/* Khuyến nghị RE-TRAIN MODEL nếu chất lượng thấp */}
-					{performanceMetrics[3].value < 85 && (
+					{trainingResult && trainingResult.f1_score < 0.80 && (
 						<Alert className="mb-2 bg-orange-500/10 border-orange-500 text-orange-700 font-semibold flex items-center whitespace-nowrap">
 							<span className="mr-2">RETRAIN MODEL (recommended):</span>
 							<span>
-								F1-Score is below acceptable threshold (currently{' '}
-								{performanceMetrics[3].value}). Consider retraining with
-								different hyperparameters or more data.
+								F1-Score is below acceptable threshold (currently {(trainingResult.f1_score * 100).toFixed(2)}%). Consider retraining with different hyperparameters or more data.
 							</span>
 						</Alert>
 					)}
@@ -643,109 +703,83 @@ export default function DataScientistPage() {
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">Training Time</div>
-									<div className="text-lg text-white font-semibold">14.2s</div>
+									<div className="text-lg text-white font-semibold">{trainingResult.training_time_seconds.toFixed(4) || '--'}s</div>
 								</div>
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">F1-score</div>
-									<div className="text-lg text-white font-semibold">
-										{performanceMetrics[3].value}
-									</div>
+									<div className="text-lg text-white font-semibold">{(trainingResult.f1_score * 100).toFixed(2) ?? '--'}</div>
 								</div>
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">OOB Score</div>
-									<div className="text-lg text-white font-semibold">0.921</div>
+									<div className="text-lg text-white font-semibold">{(trainingResult.oob_score * 100).toFixed(2) ?? '--'}</div>
 								</div>
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">Precision</div>
-									<div className="text-lg text-white font-semibold">
-										{performanceMetrics[1].value}
-									</div>
+									<div className="text-lg text-white font-semibold">{(trainingResult.precision * 100).toFixed(2) ?? '--'}</div>
 								</div>
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">Train Accuracy</div>
-									<div className="text-lg text-white font-semibold">0.945</div>
+									<div className="text-lg text-white font-semibold">{trainingResult.train_accuracy.toFixed(4) ?? '--'}</div>
 								</div>
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">Test Accuracy</div>
-									<div className="text-lg text-white font-semibold">0.932</div>
+									<div className="text-lg text-white font-semibold">{trainingResult.test_accuracy.toFixed(4) ?? '--'}</div>
 								</div>
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">Recall</div>
-									<div className="text-lg text-white font-semibold">
-										{performanceMetrics[2].value}
-									</div>
+									<div className="text-lg text-white font-semibold">{(trainingResult.recall * 100).toFixed(2) ?? '--'}</div>
 								</div>
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">Number of Trees</div>
-									<div className="text-lg text-white font-semibold">500</div>
+									<div className="text-lg text-white font-semibold">{trainingResult.n_trees ?? '--'}</div>
 								</div>
 								<div className="space-y-2">
 									<div className="text-slate-400 text-xs">Max Depth</div>
-									<div className="text-lg text-white font-semibold">15</div>
+									<div className="text-lg text-white font-semibold">{trainingResult.max_depth ?? '--'}</div>
 								</div>
 								<div className="space-y-2">
-									<div className="text-slate-400 text-xs">
-										Number of Samples
-									</div>
-									<div className="text-lg text-white font-semibold">
-										1,245,890
-									</div>
+									<div className="text-slate-400 text-xs">Number of Samples</div>
+									<div className="text-lg text-white font-semibold">{trainingResult.n_samples ?? '--'}</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
 					{/* Confusion Matrix */}
-					<Card className="bg-slate-900 border-slate-800">
-						<CardHeader>
-							<CardTitle className="text-white">Confusion Matrix</CardTitle>
-							<p className="text-slate-400 text-sm">
-								Model predictions vs actual labels
-							</p>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
-								<div></div>
-								<div className="text-center text-slate-400 text-sm">
-									Predicted Normal
-								</div>
-								<div className="text-center text-slate-400 text-sm">
-									Predicted Attack
-								</div>
-
-								<div className="text-slate-400 text-sm flex items-center">
-									Actual Normal
-								</div>
-								<div className="bg-green-900/30 border-2 border-green-500 rounded-lg p-6 text-center">
-									<div className="text-2xl text-green-400">8,234</div>
-									<div className="text-xs text-green-300 mt-1">
-										True Negative
+					{trainingResult.confusion_matrix && (
+						<Card className="bg-slate-900 border-slate-800">
+							<CardHeader>
+								<CardTitle className="text-white">Confusion Matrix</CardTitle>
+								<p className="text-slate-400 text-sm">
+									Model predictions vs actual labels
+								</p>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+									<div></div>
+									<div className="text-center text-slate-400 text-sm">Predicted Normal</div>
+									<div className="text-center text-slate-400 text-sm">Predicted Attack</div>
+									<div className="text-slate-400 text-sm flex items-center">Actual Normal</div>
+									<div className="bg-green-900/30 border-2 border-green-500 rounded-lg p-6 text-center">
+										<div className="text-2xl text-green-400">{trainingResult.confusion_matrix[0][0]}</div>
+										<div className="text-xs text-green-300 mt-1">True Negative</div>
+									</div>
+									<div className="bg-orange-900/30 border-2 border-orange-500 rounded-lg p-6 text-center">
+										<div className="text-2xl text-orange-400">{trainingResult.confusion_matrix[0][1]}</div>
+										<div className="text-xs text-orange-300 mt-1">False Positive</div>
+									</div>
+									<div className="text-slate-400 text-sm flex items-center">Actual Attack</div>
+									<div className="bg-orange-900/30 border-2 border-orange-500 rounded-lg p-6 text-center">
+										<div className="text-2xl text-orange-400">{trainingResult.confusion_matrix[1][0]}</div>
+										<div className="text-xs text-orange-300 mt-1">False Negative</div>
+									</div>
+									<div className="bg-green-900/30 border-2 border-green-500 rounded-lg p-6 text-center">
+										<div className="text-2xl text-green-400">{trainingResult.confusion_matrix[1][1]}</div>
+										<div className="text-xs text-green-300 mt-1">True Positive</div>
 									</div>
 								</div>
-								<div className="bg-orange-900/30 border-2 border-orange-500 rounded-lg p-6 text-center">
-									<div className="text-2xl text-orange-400">156</div>
-									<div className="text-xs text-orange-300 mt-1">
-										False Positive
-									</div>
-								</div>
-
-								<div className="text-slate-400 text-sm flex items-center">
-									Actual Attack
-								</div>
-								<div className="bg-orange-900/30 border-2 border-orange-500 rounded-lg p-6 text-center">
-									<div className="text-2xl text-orange-400">89</div>
-									<div className="text-xs text-orange-300 mt-1">
-										False Negative
-									</div>
-								</div>
-								<div className="bg-green-900/30 border-2 border-green-500 rounded-lg p-6 text-center">
-									<div className="text-2xl text-green-400">2,341</div>
-									<div className="text-xs text-green-300 mt-1">
-										True Positive
-									</div>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
+							</CardContent>
+						</Card>
+					)}
 				</div>
 			)}
 		</div>
