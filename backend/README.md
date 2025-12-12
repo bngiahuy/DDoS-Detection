@@ -5,7 +5,7 @@
 This is a backend API using FastAPI for DDoS attack detection based on network data and machine learning models.
 
 ## 2. System Requirements
-- Python 3.10 or higher (Python 3.10 or 3.11 recommended)
+- Python 3.11 or higher
 - pip (Python package manager)
 - Operating System: Windows/Linux/MacOS
 
@@ -55,7 +55,7 @@ curl -X POST "http://127.0.0.1:8000/send_traffic" -H "Content-Type: application/
 ```
 
 ## 8. Notes
-- Make sure the model file (`models/best_rf_2.pkl`) exists before running predictions.
-- If you want to retrain the model, upload a CSV file with the correct format (including all feature columns and the Label column).
+- Make sure the model file (`models/random_forest_model.pkl`) exists before running predictions.
+- If you want to retrain the model, upload a CSV file with the correct format (including all feature columns and the Label column). We have given a `training_data.csv` which we got from CIC-DDoS2019 dataset for you to quick test retraining model.
 - Logs will be saved in the `logs/` directory for monitoring and debugging.
 
