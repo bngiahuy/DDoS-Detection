@@ -1,6 +1,8 @@
 import joblib
 import pandas as pd
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
 FEATURE_COLUMNS = [
     'Packet Length Mean', 'Avg Packet Size', 'ACK Flag Count', 'Packet Length Min',
     'Fwd Packet Length Mean', 'Fwd Packet Length Min', 'Init Fwd Win Bytes',
@@ -31,7 +33,7 @@ feature_to_json_key = {
     'Total Backward Packets': 'tot_bwd_pkts',
     'Fwd IAT Mean': 'fwd_iat_mean'
 }
-model_path = "./models/best_rf_2.pkl"
+model_path = os.getenv("MODEL_PATH", "./models/random_forest_model.pkl")
 
 model = joblib.load(model_path)
 

@@ -7,12 +7,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 import pandas as pd
 from model_inference import FEATURE_COLUMNS
+import os
+from fastapi.responses import FileResponse
 
 router = APIRouter(prefix="/model", tags=["model"])
 
 
 model_info = {}
-
+# Make log directory if not exists
+if not os.path.exists("./logs"):
+    os.makedirs("./logs")
 
 @router.post("/train")
 async def train_model(
@@ -85,7 +89,7 @@ async def train_model(
     }
     model_info.update(current_model_info)
 
-    joblib.dump(model, f"./models/rf_model_{int(time.time())}.pkl")
+    joblib.dump(model, f"./models/rf_model_retrain.pkl")
     data_file.file.close()
     return {"status": "success", "data": model_info}
 
@@ -95,15 +99,10 @@ async def download_model():
     """Send pkl file of the trained model to client."""
     if not model_info:
         raise HTTPException(status_code=404, detail="No trained model available.")
-    model_filename = f"./models/rf_model_latest.pkl"
-    try:
-        model = joblib.load(model_filename)
-        return model
-    except FileNotFoundError:
+    model_filename = f"./models/rf_model_retrain.pkl"
+    if not os.path.exists(model_filename):
         raise HTTPException(status_code=404, detail="Model file not found.")
-    return JSONResponse(
-        content={"status": "success", "message": "Model file ready for download."}
-    )
+    return FileResponse(path=model_filename, media_type='application/octet-stream', filename='rf_model_retrain.pkl')
 
 
 @router.get("/info")

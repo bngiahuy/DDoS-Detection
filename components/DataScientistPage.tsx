@@ -13,6 +13,7 @@ import {
 	Play,
 	RotateCcw,
 	CheckCircle2,
+	Download,
 } from 'lucide-react';
 import {
 	BarChart,
@@ -233,6 +234,36 @@ export default function DataScientistPage() {
 		setUploadSuccess(false);
 		setTrainingResult(null);
 		if (fileInputRef.current) fileInputRef.current.value = '';
+	};
+
+	// Hàm tải model
+	const handleDownloadModel = async () => {
+		try {
+			const res = await fetch('http://localhost:8000/api/model/download-model', {
+				method: 'GET',
+			});
+			if (!res.ok) throw new Error('Failed to download model');
+			const blob = await res.blob();
+			// Lấy tên file từ header nếu có, nếu không thì đặt mặc định
+			let filename = 'rf_model_retrain.pkl';
+			const disposition = res.headers.get('Content-Disposition');
+			if (disposition && disposition.indexOf('filename=') !== -1) {
+				const match = disposition.match(/filename="?([^";]+)"?/);
+				if (match && match[1]) filename = match[1];
+			}
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			setTimeout(() => {
+				window.URL.revokeObjectURL(url);
+				document.body.removeChild(a);
+			}, 100);
+		} catch (err) {
+			alert('Download failed.');
+		}
 	};
 
 	return (
@@ -620,11 +651,20 @@ export default function DataScientistPage() {
 						</Button>
 						<Button
 							variant="outline"
-							className="border-slate-800  hover:bg-amber-50"
+							className="border-slate-800 hover:bg-amber-50"
 							onClick={handleReset}
 						>
 							<RotateCcw className="w-4 h-4 mr-2" />
 							Reset to Default
+						</Button>
+						<Button
+							variant="outline"
+							className="border-slate-800 hover:bg-green-50"
+							onClick={handleDownloadModel}
+							disabled={isTraining}
+						>
+							<Download className="w-4 h-4 mr-2" />
+							Download Model
 						</Button>
 					</div>
 				</CardContent>
