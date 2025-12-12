@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from devops import router as devops_router
 from model import router as model_router
 
+random.seed(42)
 
 # Danh sách các websocket client đang kết nối
 active_attack_clients = set()
@@ -94,8 +95,10 @@ async def websocket_simulate_attack(websocket: WebSocket):
         for i in range(100):
             sample = test_dataset.sample(n=1).iloc[0]
             features = [sample[col] for col in FEATURE_COLUMNS]
-            random_src_ip = ".".join(str(random.randint(1, 254)) for _ in range(4))
-            random_dst_ip = ".".join(str(random.randint(1, 254)) for _ in range(4))
+            src_ip = ".".join(str(random.randint(1, 254)) for _ in range(4))
+            dst_ip = ".".join(str(random.randint(1, 254)) for _ in range(4))
+            # src_ip = sample.get("Src IP", "")
+            # dst_ip = sample.get("Dst IP", "")
             label = predict(features)
             severity = random.choices(
                 mock_severities,
@@ -106,8 +109,8 @@ async def websocket_simulate_attack(websocket: WebSocket):
             data = {
                 "sample": i + 1,
                 "label": label,
-                "src": random_src_ip,
-                "dst": random_dst_ip,
+                "src": src_ip,
+                "dst": dst_ip,
                 "severity": severity,
                 "time": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
