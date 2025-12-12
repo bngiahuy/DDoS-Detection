@@ -1,81 +1,61 @@
-# Backend - DDoS Detection API
 
-This is the backend for the DDoS Detection project, built with FastAPI. It provides API endpoints to handle data processing and DDoS detection logic.
+# Backend DDoS Detection - User Guide
 
-## Directory Structure
+## 1. Introduction
+This is a backend API using FastAPI for DDoS attack detection based on network data and machine learning models.
 
-```
-backend/
-├── app/                    # Main application directory
-│   ├── __init__.py         # App module initialization
-│   ├── main.py             # Main FastAPI application
-│   ├── routes/             # API route definitions
-│   │   ├── __init__.py     # Routes module initialization
-│   │   └── items.py        # Example routes for items (add more as needed)
-│   ├── models/             # Data model definitions
-│   │   └── __init__.py     # Models module initialization
-│   └── schemas/            # Pydantic schemas for validation
-│       └── __init__.py     # Schemas module initialization
-├── main.py                 # Server entry point
-├── requirements.txt        # Python dependencies list
-└── venv/                   # Virtual environment (created with python -m venv venv)
+## 2. System Requirements
+- Python 3.10 or higher (Python 3.10 or 3.11 recommended)
+- pip (Python package manager)
+- Operating System: Windows/Linux/MacOS
+
+## 3. Environment Setup
+### Step 1: Create and activate a virtual environment (recommended)
+```bash
+python -m venv venv
+# Activate on Windows
+venv\Scripts\activate
+# Activate on Linux/MacOS
+source venv/bin/activate
 ```
 
-## Detailed Folder Explanations
-
-### app/
-The main directory containing all the FastAPI application logic. This is where we organize the code into modules.
-
-### routes/
-Contains files that define API endpoints. Each file represents a group of related routes (e.g., `items.py` for item-related endpoints). Routes are organized using FastAPI's APIRouter.
-
-### models/
-Defines the application's data models. Typically includes:
-- Database models (if using an ORM like SQLAlchemy)
-- Business logic models
-- Classes representing system data
-
-### schemas/
-Contains Pydantic schemas for validating and serializing request/response data. Schemas help with:
-- Validating incoming client data
-- Defining response data structures
-- Automatically generating API documentation
-
-## How to Run
-
-1. Activate the virtual environment:
-   ```
-   .\venv\Scripts\activate
-   ```
-
-2. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-
-3. Start the server:
-   ```
-   python main.py
-   ```
-
-The server will run at `http://localhost:8000`. You can access the API documentation at `http://localhost:8000/docs`.
-
-## Adding New Routes
-
-To add new routes:
-1. Create a new file in `app/routes/` (e.g., `users.py`)
-2. Define an APIRouter in that file
-3. Import and include the router in `app/main.py`
-
-Example:
-```python
-from app.routes.users import router as users_router
-app.include_router(users_router, prefix="/api/v1", tags=["users"])
+### Step 2: Install required packages
+```bash
+pip install -r requirements.txt
 ```
 
-## Further Development
+## 4. Run the Backend Server
+```bash
+uvicorn main:app --reload
+```
+- The server will run by default at: http://127.0.0.1:8000
+- API documentation: http://127.0.0.1:8000/docs
 
-- Add database models to `app/models/`
-- Add Pydantic schemas to `app/schemas/`
-- Configure database connections in `app/config.py` (if needed)
-- Add middleware and dependencies in `app/dependencies.py` (if needed)
+## 5. Main Features
+- **/send_traffic**: Receive network feature data, return predicted label (normal or attack)
+- **/model/train**: Retrain the model with a user-uploaded CSV file
+- **/devops/**: APIs for system health check, logs, alerts, etc.
+
+## 6. Main Files Description
+- `main.py`: Initializes FastAPI, defines main endpoints, integrates routers
+- `model_inference.py`: Handles preprocessing and prediction using the ML model
+- `model.py`: APIs for model training and evaluation
+- `devops.py`: APIs for system monitoring, logs, alerts
+- `schema.py`: Defines data schemas (Pydantic)
+- `requirements.txt`: List of required Python packages
+- `models/`: Folder containing trained model files (e.g., best_rf_2.pkl)
+- `logs/`: Folder containing system logs
+- `testing-dataset.csv`: Sample data file for testing
+
+## 7. API Testing
+- You can use Postman, curl, or access `/docs` directly to test the APIs.
+- Example to send data to `/send_traffic`:
+```bash
+curl -X POST "http://127.0.0.1:8000/send_traffic" -H "Content-Type: application/json" -d '{"pkt_len_mean": 100, ...}'
+```
+
+## 8. Notes
+- Make sure the model file (`models/best_rf_2.pkl`) exists before running predictions.
+- If you want to retrain the model, upload a CSV file with the correct format (including all feature columns and the Label column).
+- Logs will be saved in the `logs/` directory for monitoring and debugging.
+

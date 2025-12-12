@@ -1,8 +1,8 @@
+python-dateutil==2.9.0.post0
 fastapi==0.121.2
 uvicorn==0.38.0
 joblib==1.5.2
-numpy
-scikit-learn
+numpy==1.26.4
+scikit-learn==1.2.2
 pydantic==2.12.5
-scapy
-pandas
+pandas==2.3.3

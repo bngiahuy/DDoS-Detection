@@ -98,7 +98,7 @@ export default function DevOpsPage() {
 
 	const metricsFetch = () => {
 		setMetricsLoading(true);
-		fetch('http://localhost:8000/api/v1/metrics')
+		fetch('http://localhost:8000/devops/metrics')
 			.then((res) => {
 				if (!res.ok) throw new Error('Failed to fetch metrics');
 				return res.json();
@@ -121,7 +121,7 @@ export default function DevOpsPage() {
 
 	useEffect(() => {
 		setPipelineLoading(true);
-		fetch('http://localhost:8000/api/v1/pipeline')
+		fetch('http://localhost:8000/devops/pipeline')
 			.then((res) => {
 				if (!res.ok) throw new Error('Failed to fetch pipeline');
 				return res.json();
@@ -138,7 +138,7 @@ export default function DevOpsPage() {
 
 	useEffect(() => {
 		setServicesLoading(true);
-		fetch('http://localhost:8000/api/v1/services')
+		fetch('http://localhost:8000/devops/services')
 			.then((res) => {
 				if (!res.ok) throw new Error('Failed to fetch services');
 				return res.json();
@@ -155,7 +155,7 @@ export default function DevOpsPage() {
 
 	useEffect(() => {
 		setLogsLoading(true);
-		fetch('http://localhost:8000/api/v1/logs')
+		fetch('http://localhost:8000/devops/logs')
 			.then((res) => {
 				if (!res.ok) throw new Error('Failed to fetch logs');
 				return res.json();
@@ -172,7 +172,7 @@ export default function DevOpsPage() {
 
 	useEffect(() => {
 		setAlertsLoading(true);
-		fetch('http://localhost:8000/api/v1/alerts')
+		fetch('http://localhost:8000/devops/alerts')
 			.then((res) => {
 				if (!res.ok) throw new Error('Failed to fetch alerts');
 				return res.json();
